@@ -25,6 +25,14 @@ from multiprocessing import Pool
 
 import axelrod_utils
 
+
+"""
+Rewrite using Match class?
+keep 100 reps for stochastic
+keep evolutionary algorithm
+use numpy?
+"""
+
 def evolve(starting_tables, mutation_rate, generations, bottleneck, pool, plys, start_plys, starting_pop, output_file):
     """
     The function that does everything. Take a set of starting tables, and in each generation:
@@ -65,11 +73,11 @@ def evolve(starting_tables, mutation_rate, generations, bottleneck, pool, plys, 
 
                     # the values (plays) for the offspring are copied from t1 up to the crossover point, 
                     # and from t2 from the crossover point to the end
-                    new_values = copy.deepcopy(t1.values()[0:crossover]) + copy.deepcopy(t2.values()[crossover:])
+                    new_values = copy.deepcopy(list(t1.values())[0:crossover]) + copy.deepcopy(list(t2.values())[crossover:])
 
                     # turn those new values into a valid lookup table by copying the keys from t1 (the keys are the same for
                     # all tables, so it doesn't matter which one we pick)
-                    new_table = dict(zip(copy.deepcopy(t1.keys()), new_values))
+                    new_table = dict(zip(copy.deepcopy(list(t1.keys())), new_values))
                     copies.append(new_table)
 
             # now copies contains a list of the new offspring tables, do mutation
@@ -90,7 +98,7 @@ def evolve(starting_tables, mutation_rate, generations, bottleneck, pool, plys, 
             print("generation " + str(generation))
 
             # the best tables from this generation become the starting tables for the next generation
-            current_bests = results[0:bottleneck]
+            current_bests = results[0: bottleneck]
 
             # get all the scores for this generation
             scores = [score for score, table in results]
