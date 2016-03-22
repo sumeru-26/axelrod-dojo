@@ -165,7 +165,7 @@ def score_for(my_strategy_factory, iterations=200):
         average_score_vs_opponent = sum(scores_for_this_opponent) / len(scores_for_this_opponent)
         scores_for_all_opponents.append(average_score_vs_opponent)
     overall_average_score = sum(scores_for_all_opponents) / len(scores_for_all_opponents)
-    return (overall_average_score)
+    return overall_average_score
 
 
 def id_for_table(table):
@@ -180,18 +180,17 @@ def do_table(table):
     fac = lambda: axelrod.LookerUp(lookup_table=table)
     return (score_for(fac), table)
 
+from operator import itemgetter, attrgetter, methodcaller
 
 def score_tables(tables, pool):
     """Use a multiprocessing Pool to take a bunch of tables and score them"""
     results = list(pool.map(do_table, tables))
-    print(tables)
-    print(pool)
-    print(results)
-    try:
-        return list(sorted(results, reverse=True))
-    except TypeError:
-
-        print("Exiting")
-        exit()
+    results.sort(reverse=True, key=itemgetter(0))
+    for x in results:
+        if len(x) != 2:
+            print(x)
+        if not isinstance(x[0], float):
+            print(x)
+    return list(results)
 
 

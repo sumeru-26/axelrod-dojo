@@ -33,6 +33,27 @@ keep evolutionary algorithm
 use numpy?
 """
 
+def crossover(tables, mutation_rate, keys=None):
+    copies = []
+
+    # each table reproduces with each other table to produce one offspring
+    for t1 in tables:
+        for t2 in tables:
+            if t1 == t2:
+                continue
+            # for reproduction, pick a random crossover point
+            crossover = random.randrange(len(keys))
+
+            new_items = [(k, t1[k]) for k in keys[:crossover]]
+            new_items += [(k, t2[k]) for k in keys[crossover:]]
+            new_table = dict(new_items)
+
+            copies.append(new_table)
+    return copies
+
+    pass
+
+
 def evolve(starting_tables, mutation_rate, generations, bottleneck, pool, plys, start_plys, starting_pop, output_file):
     """
     The function that does everything. Take a set of starting tables, and in each generation:
@@ -48,6 +69,8 @@ def evolve(starting_tables, mutation_rate, generations, bottleneck, pool, plys, 
     # current_bests is a list of 2-tuples, each of which consists of a score and a lookup table
     # initially the collection of best tables are the ones supplied to start with
     current_bests = starting_tables
+
+    keys = list(sorted(table_keys(plys, start_plys)))
 
     for generation in range(generations):
 
@@ -67,17 +90,15 @@ def evolve(starting_tables, mutation_rate, generations, bottleneck, pool, plys, 
             # each table reproduces with each other table to produce one offspring
             for t1 in tables_to_copy:
                 for t2 in tables_to_copy:
-
+                    if t1 == t2:
+                        continue
                     # for reproduction, pick a random crossover point
                     crossover = random.randrange(len(t1.items()))
 
-                    # the values (plays) for the offspring are copied from t1 up to the crossover point, 
-                    # and from t2 from the crossover point to the end
-                    new_values = copy.deepcopy(list(t1.values())[0:crossover]) + copy.deepcopy(list(t2.values())[crossover:])
+                    new_items = [(k, t1[k]) for k in keys[:crossover]]
+                    new_items += [(k, t2[k]) for k in keys[crossover:]]
+                    new_table = dict(new_items)
 
-                    # turn those new values into a valid lookup table by copying the keys from t1 (the keys are the same for
-                    # all tables, so it doesn't matter which one we pick)
-                    new_table = dict(zip(copy.deepcopy(list(t1.keys())), new_values))
                     copies.append(new_table)
 
             # now copies contains a list of the new offspring tables, do mutation
@@ -88,7 +109,7 @@ def evolve(starting_tables, mutation_rate, generations, bottleneck, pool, plys, 
                         c[history] = 'C' if move == 'D' else 'D'
 
             # the population of tables we want to consider includes the recombined, mutated copies, plus the originals
-            population  = copies + tables_to_copy
+            population = copies + tables_to_copy
 
             # map the population to get a list of (score, table) tuples
             # this list will be sorted by score, best tables first
@@ -110,8 +131,7 @@ def evolve(starting_tables, mutation_rate, generations, bottleneck, pool, plys, 
 
     return (current_bests)
 
-
-def get_random_tables(plys, opponent_start_plys, number):
+def table_keys(plys, opponent_start_plys):
     """Return randomly-generated lookup tables"""
 
     # generate all the possible recent histories for the player and opponent
@@ -123,6 +143,15 @@ def get_random_tables(plys, opponent_start_plys, number):
 
     # the list of keys for the lookup table is just the product of these three lists
     lookup_table_keys = list(itertools.product(opponent_starts,player_histories, opponent_histories))
+
+    return lookup_table_keys
+
+
+def get_random_tables(plys, opponent_start_plys, number):
+    """Return randomly-generated lookup tables"""
+
+    # the list of keys for the lookup table is just the product of these three lists
+    lookup_table_keys = table_keys(plys, opponent_start_plys)
 
     # to get a pattern, we just randomly pick between C and D for each key
     patterns = [''.join([random.choice("CD") for _ in lookup_table_keys]) for i in range(number)]
