@@ -51,8 +51,6 @@ def crossover(tables, mutation_rate, keys=None):
             copies.append(new_table)
     return copies
 
-    pass
-
 
 def evolve(starting_tables, mutation_rate, generations, bottleneck, pool, plys, start_plys, starting_pop, output_file):
     """
@@ -85,23 +83,9 @@ def evolve(starting_tables, mutation_rate, generations, bottleneck, pool, plys, 
             tables_to_copy = [x[1] for x in current_bests] + get_random_tables(plys, start_plys, starting_pop)
 
             # set up new list to hold the tables that we are going to want to score
-            copies = []
+            copies = crossover(tables_to_copy, mutation_rate, keys=keys)
 
-            # each table reproduces with each other table to produce one offspring
-            for t1 in tables_to_copy:
-                for t2 in tables_to_copy:
-                    if t1 == t2:
-                        continue
-                    # for reproduction, pick a random crossover point
-                    crossover = random.randrange(len(t1.items()))
-
-                    new_items = [(k, t1[k]) for k in keys[:crossover]]
-                    new_items += [(k, t2[k]) for k in keys[crossover:]]
-                    new_table = dict(new_items)
-
-                    copies.append(new_table)
-
-            # now copies contains a list of the new offspring tables, do mutation
+            # Mutations
             for c in copies:
                 # flip each value with a probability proportional to the mutation rate
                 for history, move in c.items():
