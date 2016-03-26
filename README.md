@@ -3,7 +3,7 @@
 Install axelrod:
 
 ```
-pip install axelrod numpy cloudpickle
+pip install axelrod numpy cloudpickle docopt
 ```
 
 Clone this repository

@@ -22,6 +22,8 @@ import random
 import copy
 from multiprocessing import Pool
 
+from docopt import docopt
+
 import axelrod_utils
 
 
@@ -145,6 +147,7 @@ def get_random_tables(plys, opponent_start_plys, number):
     return tables
 
 if __name__ == '__main__':
+    arguments = docopt(__doc__, version='Lookup Evolver 0.1')
     # set up the process pool 
     pool = Pool(processes=int(arguments['-i'])) 
 
