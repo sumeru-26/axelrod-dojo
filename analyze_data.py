@@ -8,5 +8,5 @@ if __name__ == "__main__":
         for line in data:
             results.append(line.split(','))
     results.sort(reverse=True, key=itemgetter(2))
-    for result in results[:5]:
+    for result in results[:10]:
         print(result[2], result[1])
