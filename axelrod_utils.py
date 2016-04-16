@@ -144,8 +144,8 @@ def score_single(me, other, iterations=200):
 def score_for(my_strategy_factory, iterations=200):
     """
     Given a function that will return a strategy, calculate the average score per turn
-    against all ordinary strategies. If the opponent is classified as stochastic, then 
-    run 100 repetitions and take the average to get a good estimate. 
+    against all ordinary strategies. If the opponent is classified as stochastic, then
+    run 100 repetitions and take the average to get a good estimate.
     """
     scores_for_all_opponents = []
     for opponent in get_strategies():
@@ -157,9 +157,9 @@ def score_for(my_strategy_factory, iterations=200):
         for _ in range(repetitions):
             me = my_strategy_factory()
             other = opponent()
-            # make sure that both players know what length the match will be 
-            me.set_tournament_attributes(length=iterations)
-            other.set_tournament_attributes(length=iterations)
+            # make sure that both players know what length the match will be
+            me.set_match_attributes(length=iterations)
+            other.set_match_attributes(length=iterations)
             scores_for_this_opponent.append(score_single(me, other, iterations))
 
         average_score_vs_opponent = sum(scores_for_this_opponent) / len(scores_for_this_opponent)
@@ -171,6 +171,10 @@ def score_for(my_strategy_factory, iterations=200):
 def id_for_table(table):
     """Return a string representing the values of a lookup table dict"""
     return ''.join([v for k, v in sorted(table.items())])
+
+def table_from_id(string_id, keys):
+    """Return a lookup table dict from a string representing the values"""
+    return dict(zip(keys, string_id))
 
 def do_table(table):
     """
@@ -192,5 +196,3 @@ def score_tables(tables, pool):
         if not isinstance(x[0], float):
             print(x)
     return list(results)
-
-

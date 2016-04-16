@@ -1,18 +1,22 @@
 """Lookup Evolve.
 
 Usage:
-    lookup_evolve.py [-h] [-p PLIES] [-s STARTING_PLIES] [-g GENERATIONS] [-k STARTING_POPULATION] [-u MUTATION_RATE] [-b BOTTLENECK] [-i PROCESSORS] [-o OUTPUT_FILE]
+    lookup_evolve.py [-h] [-p PLIES] [-s STARTING_PLIES] [-g GENERATIONS] [-k
+    STARTING_POPULATION] [-u MUTATION_RATE] [-b BOTTLENECK] [-i PROCESSORS] [-o
+    OUTPUT_FILE] [-z INITIAL_POPULATION_FILE]
 
 Options:
-    -h --help               show this
-    -p PLIES                specify the number of recent plays in the lookup table [default: 2]
-    -s STARTING_PLIES       specify the number of opponent starting plays in the lookup table [default: 2]
-    -g GENERATIONS          how many generations to run the program for [default: 100]
-    -k STARTING_POPULATION  starting population for the simulation [default: 5]
-    -u MUTATION_RATE        mutation rate i.e. probability that a given value will flip [default: 0.1]
-    -b BOTTLENECK           number of individuals to keep from each generation [default: 10]
-    -i PROCESSORS           number of processors to use [default: 1]
-    -o OUTPUT_FILE          file to write statistics to [default: evolve.csv]
+    -h --help                    show this
+    -p PLIES                     specify the number of recent plays in the lookup table [default: 2]
+    -s STARTING_PLIES            specify the number of opponent starting plays in the lookup table [default: 2]
+    -g GENERATIONS               how many generations to run the program for [default: 100]
+    -k STARTING_POPULATION       starting population size for the simulation [default: 5]
+    -u MUTATION_RATE             mutation rate i.e. probability that a given value will flip [default: 0.1]
+    -b BOTTLENECK                number of individuals to keep from each generation [default: 10]
+    -i PROCESSORS                number of processors to use [default: 1]
+    -o OUTPUT_FILE               file to write statistics to [default: evolve.csv]
+    -z INITIAL_POPULATION_FILE   file to read an initial population from [default: None]
+
 
 
 """
@@ -25,6 +29,7 @@ from multiprocessing import Pool
 from docopt import docopt
 
 import axelrod_utils
+import analyze_data
 
 
 """
@@ -57,7 +62,7 @@ def evolve(starting_tables, mutation_rate, generations, bottleneck, pool, plys, 
     """
     The function that does everything. Take a set of starting tables, and in each generation:
     - add a bunch more random tables
-    - simulate recombination between each pair of tables 
+    - simulate recombination between each pair of tables
     - randomly mutate the current population of tables
     - calculate the fitness function i.e. the average score per turn
     - keep the best individuals and discard the rest
@@ -117,7 +122,7 @@ def evolve(starting_tables, mutation_rate, generations, bottleneck, pool, plys, 
     return (current_bests)
 
 def table_keys(plys, opponent_start_plys):
-    """Return randomly-generated lookup tables"""
+    """Return key for given size of table"""
 
     # generate all the possible recent histories for the player and opponent
     player_histories = [''.join(x) for x in itertools.product('CD', repeat=plys)]
@@ -148,8 +153,8 @@ def get_random_tables(plys, opponent_start_plys, number):
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='Lookup Evolver 0.1')
-    # set up the process pool 
-    pool = Pool(processes=int(arguments['-i'])) 
+    # set up the process pool
+    pool = Pool(processes=int(arguments['-i']))
 
     # vars for the genetic algorithm
     starting_pop = int(arguments['-k'])
@@ -158,10 +163,25 @@ if __name__ == '__main__':
     bottleneck = int(arguments['-b'])
     plys = int(arguments['-p'])
     start_plys = int(arguments['-s'])
+    initial_population = arguments['-z']
 
     # generate a starting population of tables and score them
     # these will start off the first generation
-    starting_tables = get_random_tables(plys, start_plys, starting_pop)
+    if initial_population == 'None':
+        starting_tables = get_random_tables(plys, start_plys, starting_pop)
+    else:
+        keys = table_keys(plys, start_plys)
+        data = analyze_data.read_top_tables(initial_population, starting_pop)
+        starting_tables = []
+        for row in data:
+            starting_tables.append(axelrod_utils.table_from_id(row[1], keys))
+        # If insufficient size in data augment with random tables:
+        if len(starting_tables) < starting_pop:
+            needed_num = starting_pop - len(starting_tables)
+            starting_tables = starting_tables + get_random_tables(plys,
+                                                                  start_plys,
+                                                                  needed_num)
+
     real_starting_tables = axelrod_utils.score_tables(starting_tables, pool)
 
     # kick off the evolve function
