@@ -50,10 +50,15 @@ python lookup_evolve.py -p 2 -s 3  -g 100000 -k 20 -u 0.03 -b 20 -i 4 -o evolve2
 ### 2, 2 is the current winner:
 ```
 python lookup_evolve.py -p 2 -s 2  -g 100000 -k 20 -u 0.06 -b 20 -i 4 -o evolve2-2.csv
+
+python lookup_evolve.py -p 1 -s 2  -g 100000 -k 20 -u 0.1 -b 20 -i 2 -o evolve1-2.csv
+
+python lookup_evolve.py -p 1 -s 2  -g 100000 -k 20 -u 0.1 -b 20 -i 2 -o evolve2-1.csv
+
 ```
-### 4, 4
+### 4, 4 (might take for ever / need a ton of ram)
 ```
-python lookup_evolve.py -p 4 -s 4  -g 100000 -k 20 -u 0.01 -b 20 -i 4 -o evolve4-4.csv
+python lookup_evolve.py -p 4 -s 4  -g 100000 -k 20 -u 0.002 -b 20 -i 4 -o evolve4-4.csv
 ```
 ## Analyzing
 

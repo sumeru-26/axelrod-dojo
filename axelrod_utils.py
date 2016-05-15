@@ -1,109 +1,7 @@
 from __future__ import division
 import axelrod
 
-
 axl = axelrod
-
-def get_strategies():
-    strategies = [
-        axl.Aggravater,
-        axl.ALLCorALLD,
-        axl.Alternator,
-        axl.AlternatorHunter,
-        axl.AntiCycler,
-        axl.AntiTitForTat,
-        axl.APavlov2006,
-        axl.APavlov2011,
-        axl.Appeaser,
-        axl.AverageCopier,
-        axl.BackStabber,
-        axl.Bully,
-        axl.Calculator,
-        axl.Champion,
-        axl.Cooperator,
-        axl.CyclerCCCCCD,
-        axl.CyclerCCCD,
-        axl.CyclerCCD,
-        axl.Davis,
-        axl.Defector,
-        axl.DoubleCrosser,
-        axl.Eatherley,
-        axl.Feld,
-        axl.FirmButFair,
-        axl.FoolMeForever,
-        axl.FoolMeOnce,
-        axl.ForgetfulFoolMeOnce,
-        axl.ForgetfulGrudger,
-        axl.Forgiver,
-        axl.ForgivingTitForTat,
-        axl.PSOGambler,
-        axl.GTFT,
-        axl.GoByMajority,
-        axl.GoByMajority10,
-        axl.GoByMajority20,
-        axl.GoByMajority40,
-        axl.GoByMajority5,
-        axl.HardGoByMajority,
-        axl.HardGoByMajority10,
-        axl.HardGoByMajority20,
-        axl.HardGoByMajority40,
-        axl.HardGoByMajority5,
-        axl.Golden,
-        axl.Grofman,
-        axl.Grudger,
-        axl.Grumpy,
-        axl.HardProber,
-        axl.HardTitFor2Tats,
-        axl.HardTitForTat,
-        axl.Inverse,
-        axl.InversePunisher,
-        axl.Joss,
-        axl.LimitedRetaliate,
-        axl.LimitedRetaliate2,
-        axl.LimitedRetaliate3,
-        axl.EvolvedLookerUp,
-        axl.MathConstantHunter,
-        axl.NiceAverageCopier,
-        axl.Nydegger,
-        axl.OmegaTFT,
-        axl.OnceBitten,
-        axl.OppositeGrudger,
-        axl.Pi,
-        axl.Prober,
-        axl.Prober2,
-        axl.Prober3,
-        axl.Punisher,
-        axl.Random,
-        axl.RandomHunter,
-        axl.Retaliate,
-        axl.Retaliate2,
-        axl.Retaliate3,
-        axl.Shubik,
-        axl.SneakyTitForTat,
-        axl.SoftJoss,
-        axl.StochasticWSLS,
-        axl.SuspiciousTitForTat,
-        axl.Tester,
-        axl.ThueMorse,
-        axl.TitForTat,
-        axl.TitFor2Tats,
-        axl.TrickyCooperator,
-        axl.TrickyDefector,
-        axl.Tullock,
-        axl.TwoTitsForTat,
-        axl.WinStayLoseShift,
-        axl.ZDExtort2,
-        axl.ZDExtort2v2,
-        axl.ZDExtort4,
-        axl.ZDGen2,
-        axl.ZDGTFT2,
-        axl.ZDSet2,
-        axl.e,
-    ]
-
-    strategies = [s for s in strategies if axl.obey_axelrod(s())]
-    return strategies
-
 
 def mean(data):
     """Return the sample arithmetic mean of data."""
@@ -148,8 +46,8 @@ def score_for(my_strategy_factory, iterations=200):
     run 100 repetitions and take the average to get a good estimate.
     """
     scores_for_all_opponents = []
-    for opponent in get_strategies():
-        if opponent.classifier['stochastic']:
+    for opponent in axl.ordinary_strategies:
+        if opponent().classifier['stochastic']:
             repetitions = 100
         else:
             repetitions = 1
