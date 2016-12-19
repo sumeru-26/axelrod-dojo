@@ -1,95 +1,82 @@
-from __future__ import division
-from operator import itemgetter
+from statistics import mean
 
 import axelrod as axl
 
-def mean(data):
-    """Return the sample arithmetic mean of data."""
-    n = len(data)
-    if n < 1:
-        raise ValueError('mean requires at least one data point')
-    return sum(data) / n  # in Python 2 use sum(data)/float(n)
 
+def objective_match_score(me, other, turns, noise):
+    """Objective function to maximize total score over matches."""
+    match = axl.Match((me, other), turns=turns, noise=noise)
+    if match._stochastic:
+        repetitions = 20
+    else:
+        repetitions = 1
+    scores_for_this_opponent = []
 
-def _ss(data):
-    """Return sum of square deviations of sequence data."""
-    c = mean(data)
-    ss = sum((x - c)**2 for x in data)
-    return ss
+    for _ in range(repetitions):
+        match.play()
+        scores_for_this_opponent.append(match.final_score_per_turn()[0])
+    return scores_for_this_opponent
 
+def objective_match_score_difference(me, other, turns, noise):
+    """Objective function to maximize total score difference over matches."""
+    match = axl.Match((me, other), turns=turns, noise=noise)
+    if match._stochastic:
+        repetitions = 20
+    else:
+        repetitions = 1
+    scores_for_this_opponent = []
 
-def pstdev(data):
-    """Calculates the population standard deviation."""
-    n = len(data)
-    if n < 2:
-        raise ValueError('variance requires at least two data points')
-    ss = _ss(data)
-    pvar = ss / n  # the population variance
-    return pvar**0.5
+    for _ in range(repetitions):
+        match.play()
+        final_scores = match.final_score_per_turn()
+        score_diff = final_scores[0] - final_scores[1]
+        scores_for_this_opponent.append(score_diff)
+    return scores_for_this_opponent
 
+def objective_match_moran_win(me, other, turns, noise=0):
+    """Objective function to maximize Moran fixations over N=4 matches"""
+    assert(noise == 0)
+    # N = 4 population
+    population = (me, me.clone(), other, other.clone())
+    mp = axl.MoranProcess(population, turns=turns, noise=noise)
 
-def score_single(me, other, iterations=200):
-    """
-    Return the average score per turn for a player in a single match against
-    an opponent.
-     """
-    g = axl.Game()
-    for _ in range(iterations):
-        me.play(other)
-    return sum([g.score(pair)[0] for pair in zip(me.history, other.history)]) / iterations
+    if mp._stochastic:
+        repetitions = 100
+    else:
+        repetitions = 1
 
+    scores_for_this_opponent = []
 
-def score_for(my_strategy_factory, iterations=200):
-    """
-    Given a function that will return a strategy, calculate the average score per turn
-    against all ordinary strategies. If the opponent is classified as stochastic, then
-    run 100 repetitions and take the average to get a good estimate.
-    """
-    scores_for_all_opponents = []
-    opponents = [s for s in axl.strategies if not s().classifier['long_run_time']]
-    for opponent in opponents:
-        if opponent().classifier['stochastic']:
-            repetitions = 100
+    for _ in range(repetitions):
+        mp.play()
+        if mp.winning_strategy_name == str(me):
+            scores_for_this_opponent.append(1)
         else:
-            repetitions = 1
-        scores_for_this_opponent = []
-        for _ in range(repetitions):
-            me = my_strategy_factory()
-            other = opponent()
-            # make sure that both players know what length the match will be
-            me.set_match_attributes(length=iterations)
-            other.set_match_attributes(length=iterations)
-            scores_for_this_opponent.append(score_single(me, other, iterations))
+            scores_for_this_opponent.append(0)
+    return scores_for_this_opponent
 
-        average_score_vs_opponent = sum(scores_for_this_opponent) / len(scores_for_this_opponent)
-        scores_for_all_opponents.append(average_score_vs_opponent)
-    overall_average_score = sum(scores_for_all_opponents) / len(scores_for_all_opponents)
-    return overall_average_score
-
-
-def id_for_table(table):
-    """Return a string representing the values of a lookup table dict"""
-    return ''.join([v for k, v in sorted(table.items())])
-
-def table_from_id(string_id, keys):
-    """Return a lookup table dict from a string representing the values"""
-    return dict(zip(keys, string_id))
-
-def do_table(table):
+def score_for(my_strategy_factory, args=None, opponents=None, turns=200,
+              noise=0., objective=objective_match_score):
     """
-    Take a lookup table dict, construct a lambda factory for it, and return
-    a tuple of the score and the table itself
+    Given a function that will return a strategy, calculate the average score
+    per turn against all ordinary strategies. If the opponent is classified as
+    stochastic, then run 100 repetitions and take the average to get a good
+    estimate.
     """
-    fac = lambda: axl.LookerUp(lookup_table=table)
-    return (score_for(fac), table)
+    if not args:
+        args = []
+    scores_for_all_opponents = []
+    if not opponents:
+        # opponents = [s for s in axl.strategies]
+        opponents = axl.short_run_time_strategies
 
-def score_tables(tables, pool):
-    """Use a multiprocessing Pool to take a bunch of tables and score them"""
-    results = list(pool.map(do_table, tables))
-    results.sort(reverse=True, key=itemgetter(0))
-    for x in results:
-        if len(x) != 2:
-            print(x)
-        if not isinstance(x[0], float):
-            print(x)
-    return list(results)
+    for opponent in opponents:
+        me = my_strategy_factory(*args)
+        other = opponent()
+        scores_for_this_opponent = objective(me, other, turns, noise)
+        mean_vs_opponent = mean(scores_for_this_opponent)
+        scores_for_all_opponents.append(mean_vs_opponent)
+
+    # Calculate the average for all opponents
+    overall_mean_score = mean(scores_for_all_opponents)
+    return overall_mean_score
