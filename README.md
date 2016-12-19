@@ -1,31 +1,31 @@
-## Installation
+# Axelrod Evolvers
 
-Install axelrod:
+This repository contains training code for the strategies LookerUp, PSOGambler, and EvolvedANN (feed-forward neural network).
+There are three scripts, one for each strategy:
+* looker_evolve.py
+* pso_evolve.py
+* ann_evolve.py
 
-```
-pip install axelrod numpy cloudpickle docopt
-```
+In the original iteration the strategies were run against all the default strategies in the Axelrod library. This is slow and probably not necessary. For example the Meta players are just combinations of the other players, and very computationally intensive; it's probably ok to remove those.
 
-Clone this repository
-
-## Some Changes
-
-In the original repository the strategies were run against all the default strategies in the Axelrod library. This is slow and probably not necessary. For example the Meta* players are just combinations of the other players, and very computationally intensive; it's probably ok to remove those.
-
-This fork uses a subset of about 90 strategies, excluding the most computationally intensives (e.g. the hunters).
-
-## The strategies
+## The Strategies
 
 The LookerUp strategies are based on lookup tables with two parameters:
 * n, the number of rounds of trailing history to use and
 * m, the number of rounds of initial opponent play to use
 
+PSOGambler is a stochastic version of LookerUp, trained with a particle swarm algorithm.
+
+EvolvedANN is one hidden layer feed forward neural network based algorithm.
+
+All three strategies are trained with an evolutionary algorithm and are examples of reinforcement learning.
+
 ### Open questions
 
-* What's the best table for n, m?
-* What's the best table against parameterized strategies. For example, if the opponents are `[RandomPlayer(x) for x in np.arange(0, 1, 0.01)], what lookup table is best? Is it much different from the generic table?
+* What's the best table for n, m for LookerUp and PSOGambler?
+* What's the best table against parameterized strategies? For example, if the opponents are `[RandomPlayer(x) for x in np.arange(0, 1, 0.01)], what lookup table is best? Is it much different from the generic table?
 * Can we separate n into n1 and n2 where different amounts of history are used for the player and the opponent?
-* Incorporate @GKDO's swarm model that makes the tables non-deterministic, for the same values of n and m. Does this produce better results for all n and m?
+* Are there other features that would improve the performance of EvolvedANN?
 
 
 ## Running
