@@ -46,7 +46,8 @@ def score_for(my_strategy_factory, iterations=200):
     run 100 repetitions and take the average to get a good estimate.
     """
     scores_for_all_opponents = []
-    for opponent in axl.ordinary_strategies:
+    opponents = [s for s in axl.strategies if not s().classifier['long_run_time']]
+    for opponent in opponents:
         if opponent().classifier['stochastic']:
             repetitions = 100
         else:
