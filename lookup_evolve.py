@@ -16,14 +16,11 @@ Options:
     -i PROCESSORS                number of processors to use [default: 1]
     -o OUTPUT_FILE               file to write statistics to [default: evolve.csv]
     -z INITIAL_POPULATION_FILE   file to read an initial population from [default: None]
-
-
-
 """
+
 from __future__ import division
 import itertools
 import random
-import copy
 from multiprocessing import Pool
 
 from docopt import docopt
@@ -70,69 +67,83 @@ def evolve(starting_tables, mutation_rate, generations, bottleneck, pool, plys, 
 
     """
 
-    # current_bests is a list of 2-tuples, each of which consists of a score and a lookup table
-    # initially the collection of best tables are the ones supplied to start with
+    # Current_bests is a list of 2-tuples, each of which consists of a score
+    # and a lookup table initially the collection of best tables are the ones
+    # supplied to start with
     current_bests = starting_tables
 
     keys = list(sorted(table_keys(plys, start_plys)))
 
     for generation in range(generations):
 
-        # because this is a long-running process we'll just keep appending to the output file
-        # so we can monitor it while it's running
+        # Because this is a long-running process we'll just keep appending to
+        # the output file so we can monitor it while it's running
         with open(output_file, "a") as output:
             print("doing generation " + str(generation))
 
-            # the tables at the start of this generation are the best ones from the
-            # previous generation (i.e. the second element of each tuple) plus a bunch
-            # of random ones
-            tables_to_copy = [x[1] for x in current_bests] + get_random_tables(plys, start_plys, starting_pop)
+            # The tables at the start of this generation are the best ones from
+            # the previous generation (i.e. the second element of each tuple)
+            # plus a bunch of random ones
+            tables_to_copy = [x[1] for x in current_bests] + \
+                             get_random_tables(plys, start_plys, starting_pop)
 
-            # set up new list to hold the tables that we are going to want to score
+            # Set up new list to hold the tables that we are going to want to
+            # score
             copies = crossover(tables_to_copy, mutation_rate, keys=keys)
 
             # Mutations
             for c in copies:
-                # flip each value with a probability proportional to the mutation rate
+                # Flip each value with a probability proportional to the
+                # mutation rate
                 for history, move in c.items():
                     if random.random() < mutation_rate:
                         c[history] = 'C' if move == 'D' else 'D'
 
-            # the population of tables we want to consider includes the recombined, mutated copies, plus the originals
+            # The population of tables we want to consider includes the
+            # recombined, mutated copies, plus the originals
             population = copies + tables_to_copy
 
-            # map the population to get a list of (score, table) tuples
-            # this list will be sorted by score, best tables first
+            # Map the population to get a list of (score, table) tuples
+            # This list will be sorted by score, best tables first
             results = axelrod_utils.score_tables(population, pool)
 
             # keep the user informed
             print("generation " + str(generation))
 
-            # the best tables from this generation become the starting tables for the next generation
+            # The best tables from this generation become the starting tables
+            # for the next generation
             current_bests = results[0: bottleneck]
 
             # get all the scores for this generation
             scores = [score for score, table in results]
 
-            # write the generation number, identifier of current best table, score of current best table, mean score, and SD of scores to the output file
-            for value in [generation, axelrod_utils.id_for_table(results[0][1]), results[0][0], axelrod_utils.mean(scores), axelrod_utils.pstdev(scores)]:
+            # write the generation number, identifier of current best table,
+            # score of current best table, mean score, and SD of scores to the
+            # output file
+            for value in [generation,
+                          axelrod_utils.id_for_table(results[0][1]),
+                          results[0][0], axelrod_utils.mean(scores),
+                          axelrod_utils.pstdev(scores)]:
                 output.write(str(value) + ",")
             output.write("\n")
 
-    return (current_bests)
+    return current_bests
 
 def table_keys(plys, opponent_start_plys):
     """Return key for given size of table"""
 
-    # generate all the possible recent histories for the player and opponent
+    # Generate all the possible recent histories for the player and opponent
     player_histories = [''.join(x) for x in itertools.product('CD', repeat=plys)]
     opponent_histories = [''.join(x) for x in itertools.product('CD', repeat=plys)]
 
-    # also generate all the possible opponent starting plays
+    # Also generate all the possible opponent starting plays
     opponent_starts = [''.join(x) for x in itertools.product('CD', repeat=opponent_start_plys)]
 
-    # the list of keys for the lookup table is just the product of these three lists
-    lookup_table_keys = list(itertools.product(opponent_starts,player_histories, opponent_histories))
+    # The list of keys for the lookup table is just the product of these three
+    # lists
+    lookup_table_keys = list(itertools.product(opponent_starts,
+                                               player_histories,
+                                               opponent_histories))
 
     return lookup_table_keys
 
@@ -140,10 +151,11 @@ def table_keys(plys, opponent_start_plys):
 def get_random_tables(plys, opponent_start_plys, number):
     """Return randomly-generated lookup tables"""
 
-    # the list of keys for the lookup table is just the product of these three lists
+    # The list of keys for the lookup table is just the product of these three
+    # lists
     lookup_table_keys = table_keys(plys, opponent_start_plys)
 
-    # to get a pattern, we just randomly pick between C and D for each key
+    # To get a pattern, we just randomly pick between C and D for each key
     patterns = [''.join([random.choice("CD") for _ in lookup_table_keys]) for i in range(number)]
 
     # zip together the keys and the patterns to give a table
@@ -185,4 +197,5 @@ if __name__ == '__main__':
     real_starting_tables = axelrod_utils.score_tables(starting_tables, pool)
 
     # kick off the evolve function
-    evolve(real_starting_tables, mutation_rate, generations, bottleneck, pool, plys, start_plys, starting_pop, arguments['-o'])
+    evolve(real_starting_tables, mutation_rate, generations, bottleneck, pool,
+           plys, start_plys, starting_pop, arguments['-o'])

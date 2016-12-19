@@ -1,7 +1,7 @@
 from __future__ import division
-import axelrod
+from operator import itemgetter
 
-axl = axelrod
+import axelrod as axl
 
 def mean(data):
     """Return the sample arithmetic mean of data."""
@@ -33,7 +33,7 @@ def score_single(me, other, iterations=200):
     Return the average score per turn for a player in a single match against
     an opponent.
      """
-    g = axelrod.Game()
+    g = axl.Game()
     for _ in range(iterations):
         me.play(other)
     return sum([g.score(pair)[0] for pair in zip(me.history, other.history)]) / iterations
@@ -79,10 +79,8 @@ def do_table(table):
     Take a lookup table dict, construct a lambda factory for it, and return
     a tuple of the score and the table itself
     """
-    fac = lambda: axelrod.LookerUp(lookup_table=table)
+    fac = lambda: axl.LookerUp(lookup_table=table)
     return (score_for(fac), table)
-
-from operator import itemgetter, attrgetter, methodcaller
 
 def score_tables(tables, pool):
     """Use a multiprocessing Pool to take a bunch of tables and score them"""

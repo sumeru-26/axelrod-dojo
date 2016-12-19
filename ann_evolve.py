@@ -3,44 +3,44 @@ Training ANN strategies.
 
 Original code by Martin Jones @mojones:
 https://gist.github.com/mojones/b809ba565c93feb8d44becc7b93e37c6
+
+Usage:
+    ann_evolve.py [-h] [-g GENERATIONS] [-u MUTATION_RATE] [-b BOTTLENECK]
+    [-d mutation_distance] [-i PROCESSORS] [-o OUTPUT_FILE]
+    [-k STARTING_POPULATION]
+
+Options:
+    -h --help                    show this
+    -g GENERATIONS               how many generations to run the program for [default: 100]
+    -u MUTATION_RATE             mutation rate i.e. probability that a given value will flip [default: 0.1]
+    -d MUTATION_DISTANCE         amount of change a mutation will cause [default: 0.1]
+    -b BOTTLENECK                number of individuals to keep from each generation [default: 10]
+    -i PROCESSORS                number of processors to use [default: 1]
+    -o OUTPUT_FILE               file to write statistics to [default: ann_out.csv]
+    -k STARTING_POPULATION       starting population size for the simulation [default: 5]
 """
+
 
 from __future__ import division
 
 import copy
 import random
+from multiprocessing import Pool
 from statistics import mean, pstdev
 
-import axelrod
-from axelrod.strategies.ann import split_weights
+from docopt import docopt
 
-
-
-
-# def split_weights(weights, input_values, hidden_layer_size):
-#     number_of_input_to_hidden_weights = input_values * hidden_layer_size
-#     number_of_hidden_bias_weights = hidden_layer_size
-#     number_of_hidden_to_output_weights = hidden_layer_size
-#
-#     input2hidden = []
-#     for i in range(0, number_of_input_to_hidden_weights, input_values):
-#         input2hidden.append(weights[i:i + input_values])
-#
-#     hidden2output = weights[
-#                     number_of_input_to_hidden_weights:number_of_input_to_hidden_weights + number_of_hidden_to_output_weights]
-#     bias = weights[
-#            number_of_input_to_hidden_weights + number_of_hidden_to_output_weights:]
-#
-#     return (input2hidden, hidden2output, bias)
+import axelrod as axl
+from axelrod.strategies.ann import ANN, split_weights
+from axelrod_utils import mean, pstdev
 
 
 def get_random_weights(number):
     return [random.uniform(-1, 1) for _ in range(number)]
 
 
-def score_single(my_strategy_factory, other_strategy_factory, iterations=200,
-                 debug=False):
-    if other_strategy_factory.classifier['stochastic']:
+def score_single(my_strategy_factory, other_strategy_factory, length=200):
+    if other_strategy_factory().classifier['stochastic']:
         repetitions = 10
     else:
         repetitions = 1
@@ -48,37 +48,38 @@ def score_single(my_strategy_factory, other_strategy_factory, iterations=200,
     for _ in range(repetitions):
         me = my_strategy_factory()
         other = other_strategy_factory()
-        me.set_tournament_attributes(length=iterations)
-        other.set_tournament_attributes(length=iterations)
+        me.set_match_attributes(length=length)
+        other.set_match_attributes(length=length)
 
-        g = axelrod.Game()
-        for _ in range(iterations):
+        g = axl.Game()
+        for _ in range(length):
             me.play(other)
-        # print(me.history)
         iteration_score = sum([g.score(pair)[0] for pair in
-                               zip(me.history, other.history)]) / iterations
+                               zip(me.history, other.history)]) / length
         all_scores.append(iteration_score)
+    return sum(all_scores)
 
-def score_all_weights(population):
-    return sorted(pool.map(score_weights, population), reverse=True)
+def score_for(my_strategy_factory, other_strategies, iterations=200):
+    my_scores = map(
+        lambda x: score_single(my_strategy_factory, x, iterations),
+        other_strategies)
+    my_average_score = sum(my_scores) / len(my_scores)
+    return my_average_score
 
-
-def score_weights(weights):
+def score_weights(weights, strategies, input_values=17, hidden_layer_size=10):
     in2h, h2o, bias = split_weights(weights, input_values, hidden_layer_size)
     return (score_for(lambda: ANN(in2h, h2o, bias), strategies), weights)
 
+from itertools import repeat
 
-def score_for(my_strategy_factory, other_strategies=strategies, iterations=200,
-              debug=False):
-    my_scores = map(
-        lambda x: score_single(my_strategy_factory, x, iterations, debug=debug),
-        other_strategies)
-    my_average_score = sum(my_scores) / len(my_scores)
-    return (my_average_score)
-
+def score_all_weights(population, strategies):
+    # args = (population, strategies)
+    results = pool.starmap(score_weights, zip(population, repeat(strategies)))
+    return sorted(results, reverse=True)
+    # return sorted(pool.map(score_weights, *args), reverse=True)
 
 def evolve(starting_weights, mutation_rate, mutation_distance, generations,
-           bottleneck, starting_pop, output_file):
+           bottleneck, strategies, output_file):
 
     current_bests = starting_weights
 
@@ -86,10 +87,9 @@ def evolve(starting_weights, mutation_rate, mutation_distance, generations,
 
         with open(output_file, "a") as output:
 
-            weights_to_copy = [x[1] for x in current_bests]
-
+            # weights_to_copy = [x[1] for x in current_bests]
+            weights_to_copy = current_bests[0:3]
             copies = []
-
             for w1 in weights_to_copy:
                 for w2 in weights_to_copy:
                     crossover = random.randrange(len(w1))
@@ -107,12 +107,12 @@ def evolve(starting_weights, mutation_rate, mutation_distance, generations,
 
             # map the population to get a list of (score, weights) tuples
             # this list will be sorted by score, best weights first
-            results = score_all_weights(population)
+            results = score_all_weights(population, strategies)
 
-            current_bests = results[0:bottleneck]
+            current_bests = results[0: bottleneck]
 
             # get all the scores for this generation
-            scores = [score for score, table in results]
+            scores = [score for score, weights in results]
 
             for value in [generation, results[0][1], results[0][0],
                           mean(scores), pstdev(scores), mutation_rate,
@@ -124,3 +124,26 @@ def evolve(starting_weights, mutation_rate, mutation_distance, generations,
             mutation_distance *= 0.99
 
     return current_bests
+
+
+if __name__ == '__main__':
+    arguments = docopt(__doc__, version='ANN Evolver 0.1')
+    # set up the process pool
+    pool = Pool(processes=int(arguments['-i']))
+    # Vars for the genetic algorithm
+    mutation_rate = float(arguments['-u'])
+    generations = int(arguments['-g'])
+    bottleneck = int(arguments['-b'])
+    mutation_distance = float(arguments['-d'])
+    starting_population = int(arguments['-k'])
+    output_file = arguments['-o']
+
+    starting_weights = [get_random_weights(190) for _ in range(starting_population)]
+
+    strategies = [s for s in axl.all_strategies
+                  if not s().classifier['long_run_time']]
+
+    evolve(starting_weights, mutation_rate, mutation_distance, generations,
+           bottleneck, strategies, output_file)
+
+
