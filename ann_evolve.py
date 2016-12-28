@@ -11,18 +11,17 @@ Usage:
 
 Options:
     -h --help                    show this
-    -g GENERATIONS               how many generations to run the program for [default: 10000]
+    -g GENERATIONS               how many generations to run the program for [default: 1000]
     -u MUTATION_RATE             mutation rate i.e. probability that a given value will flip [default: 0.4]
-    -d MUTATION_DISTANCE         amount of change a mutation will cause [default: 10]
-    -b BOTTLENECK                number of individuals to keep from each generation [default: 6]
+    -d MUTATION_DISTANCE         amount of change a mutation will cause [default: 5]
+    -b BOTTLENECK                number of individuals to keep from each generation [default: 5]
     -i PROCESSORS                number of processors to use [default: 4]
     -o OUTPUT_FILE               file to write statistics to [default: weights.csv]
-    -k STARTING_POPULATION       starting population size for the simulation [default: 5]
+    -k STARTING_POPULATION       starting population size for the simulation [default: 10]
     -n NOISE                     match noise [default: 0.0]
 """
 
 import csv
-from copy import deepcopy
 from itertools import repeat
 from multiprocessing import Pool
 import os
@@ -32,6 +31,7 @@ from statistics import mean, pstdev
 from docopt import docopt
 import numpy as np
 
+import axelrod as axl
 from axelrod.strategies.ann import ANN, split_weights
 from axelrod_utils import score_for, objective_match_score, objective_match_moran_win
 
@@ -62,7 +62,7 @@ def crossover(weights_collection):
             if i == j:
                 continue
             crosspoint = random.randrange(len(w1))
-            new_weights = deepcopy(w1[0:crosspoint]) + deepcopy(w2[crosspoint:])
+            new_weights = list(w1[0:crosspoint]) + list(w2[crosspoint:])
             copies.append(new_weights)
     return copies
 
@@ -86,22 +86,24 @@ def evolve(starting_weights, mutation_rate, mutation_distance, generations,
 
         for generation in range(generations):
             print("Generation " + str(generation))
+            size = 19 * hidden_layer_size
+            random_weights = [get_random_weights(size) for _ in range(4)]
+            weights_to_copy = [list(x[1]) for x in current_bests]
+            weights_to_copy += random_weights
 
-            weights_to_copy = [x[1] for x in current_bests] + \
-                              [get_random_weights(19 * hidden_layer_size) for _ in
-                               range(2)]
             # Crossover
             copies = crossover(weights_to_copy)
             # Mutate
             copies = mutate(copies, mutation_rate)
 
-            population = copies + weights_to_copy
+            population = copies + [list(x[1]) for x in current_bests] + random_weights
 
             # map the population to get a list of (score, weights) tuples
             # this list will be sorted by score, best weights first
             results = score_all_weights(population, strategies, noise=noise,
                                         hidden_layer_size=hidden_layer_size)
 
+            results.sort(key=itemgetter(0), reverse=True)
             current_bests = results[0: bottleneck]
 
             # get all the scores for this generation
@@ -137,8 +139,7 @@ if __name__ == '__main__':
     size = 19 * hidden_layer_size
 
     starting_weights = [get_random_weights(size) for _ in range(starting_population)]
-
-    # strategies = axl.short_run_time_strategies
+    strategies = axl.short_run_time_strategies
 
     evolve(starting_weights, mutation_rate, mutation_distance, generations,
            bottleneck, strategies, output_file, noise,

@@ -34,7 +34,7 @@ def optimizepso(plays, opp_plays, opp_start_plays, noise=0):
             opponent_start_plays=opp_start_plays,
             pattern=pattern)
         return -score_for(Gambler, [lookup_table], noise=noise,
-                          objective=objective_match_moran_win)
+                          objective=objective_match_score)
     return f
 
 if __name__ == "__main__":

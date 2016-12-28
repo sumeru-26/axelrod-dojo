@@ -33,17 +33,12 @@ def objective_match_score_difference(me, other, turns, noise):
         scores_for_this_opponent.append(score_diff)
     return scores_for_this_opponent
 
-def objective_match_moran_win(me, other, turns, noise=0):
+def objective_match_moran_win(me, other, turns, noise=0, repetitions=100):
     """Objective function to maximize Moran fixations over N=4 matches"""
     assert(noise == 0)
     # N = 4 population
     population = (me, me.clone(), other, other.clone())
     mp = axl.MoranProcess(population, turns=turns, noise=noise)
-
-    if mp._stochastic:
-        repetitions = 100
-    else:
-        repetitions = 1
 
     scores_for_this_opponent = []
 
