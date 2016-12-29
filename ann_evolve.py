@@ -14,7 +14,7 @@ Options:
     -g GENERATIONS               how many generations to run the program for [default: 1000]
     -u MUTATION_RATE             mutation rate i.e. probability that a given value will flip [default: 0.4]
     -d MUTATION_DISTANCE         amount of change a mutation will cause [default: 5]
-    -b BOTTLENECK                number of individuals to keep from each generation [default: 5]
+    -b BOTTLENECK                number of individuals to keep from each generation [default: 10]
     -i PROCESSORS                number of processors to use [default: 4]
     -o OUTPUT_FILE               file to write statistics to [default: weights.csv]
     -k STARTING_POPULATION       starting population size for the simulation [default: 10]
@@ -24,6 +24,7 @@ Options:
 import csv
 from itertools import repeat
 from multiprocessing import Pool
+from operator import itemgetter
 import os
 import random
 from statistics import mean, pstdev
@@ -33,7 +34,7 @@ import numpy as np
 
 import axelrod as axl
 from axelrod.strategies.ann import ANN, split_weights
-from axelrod_utils import score_for, objective_match_score, objective_match_moran_win
+from axelrod_utils import score_for, objective_match_score, objective_moran_win
 
 ## Neural network specifics
 

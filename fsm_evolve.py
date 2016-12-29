@@ -30,7 +30,7 @@ import numpy as np
 
 from axelrod import flip_action
 from axelrod.strategies.finite_state_machines import FSMPlayer
-from axelrod_utils import score_for, objective_match_score, objective_match_moran_win
+from axelrod_utils import score_for, objective_match_score, objective_moran_win
 
 
 ## FSM Tables
@@ -66,12 +66,16 @@ def table_from_representation(rep):
         table.append(row)
     return table
 
+def copy_table(table):
+    new = list(map(list, table))
+    return new
+
 def score_table(table, noise):
     """
     Take a lookup table dict and return a tuple of the score and the table.
     """
     return (score_for(FSMPlayer, args=[table, 0, 'C'], noise=noise,
-                      # objective=objective_match_moran_win), table)
+                      # objective=objective_moran_win), table)
                       objective=objective_match_score), table)
 
 
@@ -93,8 +97,8 @@ def crossover(tables):
                 continue
             # For reproduction, pick a random crossover point
             crosspoint = 2 * randrange(num_states)
-            new_table = t1[:crosspoint]
-            new_table += t2[crosspoint:]
+            new_table = list(map(list, t1[:crosspoint]))
+            new_table += list(map(list, t2[crosspoint:]))
             copies.append(new_table)
     return copies
 
@@ -147,7 +151,7 @@ def evolve(starting_tables, mutation_rate, generations, bottleneck, pool,
             # the previous generation (i.e. the second element of each tuple)
             # plus a bunch of random ones
             random_tables = get_random_tables(num_states, 4)
-            tables_to_copy = [list(x[1]) for x in current_bests]
+            tables_to_copy = [copy_table(x[1]) for x in current_bests]
             tables_to_copy += random_tables
 
             # Crossover
@@ -157,7 +161,7 @@ def evolve(starting_tables, mutation_rate, generations, bottleneck, pool,
 
             # The population of tables we want to consider includes the
             # recombined, mutated copies, plus the originals
-            population = copies + [list(x[1]) for x in current_bests]
+            population = copies + [copy_table(x[1]) for x in current_bests]
             # Map the population to get a list of (score, table) tuples
             # This list will be sorted by score, best tables first
             results = score_all_tables(population, pool, noise)

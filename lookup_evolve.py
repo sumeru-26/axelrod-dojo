@@ -33,7 +33,7 @@ import numpy as np
 
 from axelrod import flip_action
 from axelrod.strategies.lookerup import LookerUp, create_lookup_table_keys
-from axelrod_utils import score_for, objective_match_score, objective_match_moran_win
+from axelrod_utils import score_for, objective_match_score, objective_moran_win
 import analyze_data
 
 
@@ -67,7 +67,8 @@ def score_table(table, noise):
     Take a lookup table dict and return a tuple of the score and the table.
     """
     return (score_for(LookerUp, args=[table], noise=noise,
-                      objective=objective_match_score), table)
+    #                  objective=objective_match_score), table)
+                      objective = objective_moran_win), table)
 
 def score_all_tables(tables, pool, noise):
     """Use a multiprocessing Pool to take a bunch of tables and score them"""
