@@ -6,17 +6,20 @@ Original version by Georgios Koutsovoulos @GDKO :
 Based on Martin Jones @mojones original LookerUp code
 
 Usage:
-    pso_evolve.py [-h] [--processes PROCESSORS]
-    [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
-    [--noise NOISE] [--nmoran NMORAN]
+    pso_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
+    [--processes PROCESSORS] [--output OUTPUT_FILE] [--objective OBJECTIVE]
+    [--repetitions REPETITIONS] [--turns TURNS] [--noise NOISE]
+    [--nmoran NMORAN]
     [--plays PLAYS] [--op_plays OP_PLAYS] [--op_start_plays OP_START_PLAYS]
 
 Options:
     -h --help                   Show help
+    --population POPULATION     Starting population size  [default: 10]
     --processes PROCESSES       Number of processes to use [default: 1]
     --output OUTPUT_FILE        File to write data to [default: pso_tables.csv]
     --objective OBJECTIVE       Objective function [default: score]
     --repetitions REPETITIONS   Repetitions in objective [default: 100]
+    --turns TURNS               Turns in each match [default: 200]
     --noise NOISE               Match noise [default: 0.00]
     --nmoran NMORAN             Moran Population Size, if Moran objective [default: 4]
     --plays PLAYS               Number of recent plays in the lookup table [default: 2]
@@ -30,24 +33,30 @@ import pyswarm
 from axelrod import Gambler
 from axelrod.strategies.lookerup import (
     create_lookup_table_keys, create_lookup_table_from_pattern)
-from axelrod_utils import score_for, prepare_objective
+from evolve_utils import prepare_objective, score_for
 
 
-def optimizepso(param_args, objective):
+def optimizepso(param_args, objective, opponents=None):
     def f(pattern):
         lookup_table = create_lookup_table_from_pattern(
             *param_args, pattern=pattern)
-        return -score_for(Gambler, objective, args=[lookup_table])
+        return -score_for(Gambler, objective, args=[lookup_table],
+                          opponents=opponents)
     return f
 
 if __name__ == "__main__":
-    arguments = docopt(__doc__, version='PSO Evolve 0.2')
+    arguments = docopt(__doc__, version='PSO Evolve 0.3')
     print(arguments)
     processes = int(arguments['--processes'])
+
+    # Population Args
+    population = int(arguments['--population'])
+    generations = int(arguments['--generations'])
 
     # Objective
     name = str(arguments['--objective'])
     repetitions = int(arguments['--repetitions'])
+    turns = int(arguments['--turns'])
     noise = float(arguments['--noise'])
     nmoran = int(arguments['--nmoran'])
 
@@ -57,7 +66,7 @@ if __name__ == "__main__":
     op_start_plays = int(arguments['--op_start_plays'])
     param_args = [plays, op_plays, op_start_plays]
 
-    objective = prepare_objective(name, noise, repetitions, nmoran)
+    objective = prepare_objective(name, turns, noise, repetitions, nmoran)
 
     size = len(create_lookup_table_keys(plays, op_plays, op_start_plays))
     lb = [0] * size
@@ -70,11 +79,11 @@ if __name__ == "__main__":
     # Pip installs version 0.6
     if pyswarm.__version__ == "0.7":
         xopt, fopt = pyswarm.pso(
-            optimizer, lb, ub, swarmsize=100, maxiter=20, debug=True,
-            phip=0.8, phig=0.8, omega=0.8, processes=processes)
+            optimizer, lb, ub, swarmsize=population, maxiter=generations,
+            debug=True, phip=0.8, phig=0.8, omega=0.8, processes=processes)
     else:
         xopt, fopt = pyswarm.pso(
-            optimizer, lb, ub, swarmsize=100, maxiter=20, debug=True,
-            phip=0.8, phig=0.8, omega=0.8)
+            optimizer, lb, ub, swarmsize=population, maxiter=generations,
+            debug=True, phip=0.8, phig=0.8, omega=0.8)
     print(xopt)
     print(fopt)
