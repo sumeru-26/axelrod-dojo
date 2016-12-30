@@ -1,82 +1,93 @@
-"""Lookup Evolve.
+"""Lookup Table Evolver
 
 Usage:
-    lookup_evolve.py [-h] [-p PLAYS] [-o OPP_PLAYS] [-s STARTING_PLAYS]
-    [-g GENERATIONS] [-k STARTING_POPULATION] [-u MUTATION_RATE] [-b BOTTLENECK]
-    [-i PROCESSORS] [-f OUTPUT_FILE] [-z INITIAL_POPULATION_FILE] [-n NOISE]
+    lookup_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
+    [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
+    [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
+    [--noise NOISE] [--nmoran NMORAN]
+    [--plays PLAYS] [--op_plays OP_PLAYS] [--op_start_plays OP_START_PLAYS]
 
 Options:
-    -h --help                   show this
-    -p PLAYS                    number of recent plays in the lookup table [default: 2]
-    -o OPP_PLAYS                number of recent plays in the lookup table [default: 2]
-    -s STARTING_PLAYS           number of opponent starting plays in the lookup table [default: 2]
-    -g GENERATIONS              how many generations to run the program for [default: 500]
-    -k STARTING_POPULATION      starting population size for the simulation [default: 10]
-    -u MUTATION_RATE            mutation rate i.e. probability that a given value will flip [default: 0.1]
-    -b BOTTLENECK               number of individuals to keep from each generation [default: 10]
-    -i PROCESSORS               number of processors to use [default: 1]
-    -f OUTPUT_FILE              file to write data to [default: tables.csv]
-    -z INITIAL_POPULATION_FILE  file to read an initial population from [default: None]
-    -n NOISE                    match noise [default: 0.00]
+    -h --help                   Show help
+    --generations GENERATIONS   Generations to run the EA [default: 500]
+    --population POPULATION     Starting population size  [default: 10]
+    --mu MUTATION_RATE          Mutation rate [default: 0.1]
+    --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 5]
+    --processes PROCESSES       Number of processes to use [default: 1]
+    --output OUTPUT_FILE        File to write data to [default: lookup_tables.csv]
+    --objective OBJECTIVE       Objective function [default: score]
+    --repetitions REPETITIONS   Repetitions in objective [default: 100]
+    --noise NOISE               Match noise [default: 0.00]
+    --nmoran NMORAN             Moran Population Size, if Moran objective [default: 4]
+    --plays PLAYS               Number of recent plays in the lookup table [default: 2]
+    --op_plays OP_PLAYS         Number of recent plays in the lookup table [default: 2]
+    --op_start_plays OP_START_PLAYS   Number of opponent starting plays in the lookup table [default: 2]
 """
 
-import csv
 from itertools import repeat
 from multiprocessing import Pool
 from operator import itemgetter
-import os
 import random
 from statistics import mean, pstdev
 
 from docopt import docopt
 import numpy as np
 
-from axelrod import flip_action
+from axelrod import Actions, flip_action
 from axelrod.strategies.lookerup import LookerUp, create_lookup_table_keys
-from axelrod_utils import score_for, objective_match_score, objective_moran_win
+from axelrod_utils import Outputer, score_for, prepare_objective
+
 import analyze_data
 
+C, D = Actions.C, Actions.D
 
 ## Look up Tables
 
-def get_random_tables(plays, opp_plays, start_plays, number):
+
+def random_params(plays, op_plays, op_start_plays):
     """Return randomly-generated lookup tables"""
     # The list of keys for the lookup table is just the product of these three
     # lists
-    lookup_table_keys = create_lookup_table_keys(plays, opp_plays, start_plays)
+    lookup_table_keys = create_lookup_table_keys(plays, op_plays, op_start_plays)
 
     # To get a pattern, we just randomly pick between C and D for each key
-    patterns = [''.join([random.choice("CD") for _ in lookup_table_keys])
-                for i in range(number)]
+    pattern = ''.join([random.choice("CD") for _ in lookup_table_keys])
 
     # zip together the keys and the patterns to give a table
-    tables = [dict(zip(lookup_table_keys, pattern)) for pattern in patterns]
+    table = dict(zip(lookup_table_keys, pattern))
 
-    return tables
+    return table
 
-def id_for_table(table):
+
+def represent_params(table):
     """Return a string representing the values of a lookup table dict"""
     return ''.join([v for k, v in sorted(table.items())])
 
-def table_from_id(string_id, keys):
+
+def params_from_representation(string_id, keys):
     """Return a lookup table dict from a string representing the values"""
     return dict(zip(keys, string_id))
 
-def score_table(table, noise):
+
+def copy_params(table):
+    return dict(table)
+
+
+def score_single(table, objective):
     """
     Take a lookup table dict and return a tuple of the score and the table.
     """
-    return (score_for(LookerUp, args=[table], noise=noise,
-    #                  objective=objective_match_score), table)
-                      objective = objective_moran_win), table)
+    return (score_for(LookerUp, objective=objective, args=[table]), table)
 
-def score_all_tables(tables, pool, noise):
+
+def score_all(tables, pool, objective):
     """Use a multiprocessing Pool to take a bunch of tables and score them"""
-    results = list(pool.starmap(score_table, zip(tables, repeat(noise))))
-    results.sort(reverse=True, key=itemgetter(0))
+    results = list(pool.starmap(score_single, zip(tables, repeat(objective))))
     return list(results)
 
+
 ## Evolutionary Algorithm
+
 
 def crossover(tables):
     copies = []
@@ -94,6 +105,7 @@ def crossover(tables):
             copies.append(new_table)
     return copies
 
+
 def mutate(copies, mutation_rate):
     randoms = np.random.random((len(copies), len(copies[0].keys())))
     for i, c in enumerate(copies):
@@ -103,8 +115,9 @@ def mutate(copies, mutation_rate):
                 c[history] = flip_action(move)
     return copies
 
-def evolve(starting_tables, mutation_rate, generations, bottleneck, pool, plays,
-           opp_plays, start_plays, starting_pop, output_file, noise):
+
+def evolve(starting_population, objective, generations, bottleneck,
+           mutation_rate, processes, output_filename, param_args):
     """
     The function that does everything. Take a set of starting tables, and in
     each generation:
@@ -115,96 +128,97 @@ def evolve(starting_tables, mutation_rate, generations, bottleneck, pool, plays,
     - keep the best individuals and discard the rest
     - write out summary statistics to the output file
     """
+    pool = Pool(processes=processes)
+    outputer = Outputer(output_filename)
 
-    # Current_bests is a list of 2-tuples, each of which consists of a score
-    # and a lookup table initially the collection of best tables are the ones
-    # supplied to start with
-    current_bests = [[0, t] for t in starting_tables]
+    current_bests = [[0, t] for t in starting_population]
 
     for generation in range(generations):
         # Because this is a long-running process we'll just keep appending to
         # the output file so we can monitor it while it's running
-        with open(output_file, 'w') as output:
-            writer = csv.writer(output)
-            print("Generation " + str(generation))
+        print("Starting Generation " + str(generation))
 
-            # The tables at the start of this generation are the best ones from
-            # the previous generation (i.e. the second element of each tuple)
-            # plus a bunch of random ones
-            random_tables = get_random_tables(
-                plays, opp_plays, start_plays, 4)
-            tables_to_copy = [dict(x[1]) for x in current_bests] + random_tables
+        # The tables at the start of this generation are the best ones from
+        # the previous generation (i.e. the second element of each tuple)
+        # plus a bunch of random ones
+        random_tables = [random_params(*param_args) for _ in range(4)]
+        tables_to_copy = [copy_params(x[1]) for x in current_bests]
+        tables_to_copy += random_tables
 
-            # Crossover
-            copies = crossover(tables_to_copy)
-            # Mutate
-            copies = mutate(copies, mutation_rate)
+        # Crossover
+        copies = crossover(tables_to_copy)
+        # Mutate
+        copies = mutate(copies, mutation_rate)
 
-            # The population of tables we want to consider includes the
-            # recombined, mutated copies, plus the originals
-            population = copies + [dict(x[1]) for x in current_bests]
+        # The population of tables we want to consider includes the
+        # recombined, mutated copies, plus the originals
+        population = copies + [copy_params(x[1]) for x in current_bests]
+        # Map the population to get a list of (score, table) tuples
 
-            # Map the population to get a list of (score, table) tuples
-            # This list will be sorted by score, best tables first
-            results = score_all_tables(population, pool, noise)
+        # This list will be sorted by score, best tables first
+        results = score_all(population, pool, objective)
 
-            # The best tables from this generation become the starting tables
-            # for the next generation
-            results.sort(key=itemgetter(0), reverse=True)
-            current_bests = results[0: bottleneck]
+        # The best tables from this generation become the starting tables
+        # for the next generation
+        results.sort(key=itemgetter(0), reverse=True)
+        current_bests = results[0: bottleneck]
 
-            # get all the scores for this generation
-            scores = [score for (score, table) in results]
+        # get all the scores for this generation
+        scores = [score for (score, table) in results]
 
-            # Write the data
-            row = [generation, mean(scores), pstdev(scores), results[0][0],
-                   id_for_table(results[0][1])]
-            row.extend(results[0][1])
-            writer.writerow(row)
-            output.flush()
-            os.fsync(output.fileno())
+        # Write the data
+        row = [generation, mean(scores), pstdev(scores), results[0][0],
+               represent_params(results[0][1])]
+        row.extend(results[0][1])
+        outputer.write(row)
 
-            print("Generation", generation, "| Best Score:", results[0][0],
-                  id_for_table(results[0][1]))
+        print("Generation", generation, "| Best Score:", results[0][0],
+              represent_params(results[0][1]))
     return current_bests
+
 
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='Lookup Evolver 0.2')
-    # set up the process pool
-    pool = Pool(processes=int(arguments['-i']))
+    print(arguments)
+    processes = int(arguments['--processes'])
 
-    # vars for the genetic algorithm
-    starting_pop = int(arguments['-k'])
-    mutation_rate = float(arguments['-u'])
-    generations = int(arguments['-g'])
-    bottleneck = int(arguments['-b'])
-    plays = int(arguments['-p'])
-    opp_plays = int(arguments['-o'])
-    start_plays = int(arguments['-s'])
-    initial_population = arguments['-z']
-    output_file = arguments['-f']
-    noise = float(arguments['-n'])
+    # Vars for the genetic algorithm
+    population = int(arguments['--population'])
+    mutation_rate = float(arguments['--mu'])
+    generations = int(arguments['--generations'])
+    bottleneck = int(arguments['--bottleneck'])
+    output_filename = arguments['--output']
 
-    # generate a starting population of tables and score them
-    # these will start off the first generation
-    if initial_population == 'None':
-        starting_tables = get_random_tables(
-            plays, opp_plays, start_plays, starting_pop)
-    else:
-        keys = create_lookup_table_keys(plays, opp_plays, start_plays)
-        data = analyze_data.read_top_tables(initial_population, starting_pop)
-        starting_tables = []
-        for row in data:
-            starting_tables.append(table_from_id(row[1], keys))
-        # If insufficient size in data augment with random tables:
-        if len(starting_tables) < starting_pop:
-            needed_num = starting_pop - len(starting_tables)
-            starting_tables = starting_tables + get_random_tables(
-                plays, opp_plays, start_plays, needed_num)
+    # Objective
+    name = str(arguments['--objective'])
+    repetitions = int(arguments['--repetitions'])
+    noise = float(arguments['--noise'])
+    nmoran = int(arguments['--nmoran'])
 
-    # real_starting_tables = score_all_tables(starting_tables, pool, noise)
+    # Lookup Tables
+    plays = int(arguments['--plays'])
+    op_plays = int(arguments['--op_plays'])
+    op_start_plays = int(arguments['--op_start_plays'])
+    param_args = [plays, op_plays, op_start_plays]
 
-    # kick off the evolve function
-    evolve(starting_tables, mutation_rate, generations, bottleneck, pool,
-           plays, opp_plays, start_plays, starting_pop, output_file, noise)
+    objective = prepare_objective(name, noise, repetitions, nmoran)
+
+    # Generate random starting population
+    starting_population = [random_params(*param_args) for _ in range(population)]
+
+    # else:
+    #     keys = create_lookup_table_keys(plays, opp_plays, op_start_plays)
+    #     data = analyze_data.read_top_tables(initial_population, starting_pop)
+    #     starting_tables = []
+    #     for row in data:
+    #         starting_tables.append(table_from_id(row[1], keys))
+    #     # If insufficient size in data augment with random tables:
+    #     if len(starting_tables) < starting_pop:
+    #         needed_num = starting_pop - len(starting_tables)
+    #         starting_tables = starting_tables + random_params(
+    #             plays, opp_plays, op_start_plays, needed_num)
+
+    # Kick off the evolve function
+    evolve(starting_population, objective, generations, bottleneck,
+           mutation_rate, processes, output_filename, param_args)

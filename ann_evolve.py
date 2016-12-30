@@ -1,31 +1,37 @@
 """
-Training ANN strategies with an evolutionary algorithm.
+ANN evolver.
+Trains ANN strategies with an evolutionary algorithm.
 
-Original code by Martin Jones @mojones:
+Original version by Martin Jones @mojones:
 https://gist.github.com/mojones/b809ba565c93feb8d44becc7b93e37c6
 
 Usage:
-    ann_evolve.py [-h] [-g GENERATIONS] [-u MUTATION_RATE] [-b BOTTLENECK]
-    [-d MUTATION_DISTANCE] [-i PROCESSORS] [-o OUTPUT_FILE]
-    [-k STARTING_POPULATION] [-n NOISE]
+    ann_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
+    [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
+    [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
+    [--noise NOISE] [--nmoran NMORAN]
+    [--features FEATURES] [--hidden HIDDEN] [--mu_distance DISTANCE]
 
 Options:
-    -h --help                    show this
-    -g GENERATIONS               how many generations to run the program for [default: 1000]
-    -u MUTATION_RATE             mutation rate i.e. probability that a given value will flip [default: 0.4]
-    -d MUTATION_DISTANCE         amount of change a mutation will cause [default: 5]
-    -b BOTTLENECK                number of individuals to keep from each generation [default: 10]
-    -i PROCESSORS                number of processors to use [default: 4]
-    -o OUTPUT_FILE               file to write statistics to [default: weights.csv]
-    -k STARTING_POPULATION       starting population size for the simulation [default: 10]
-    -n NOISE                     match noise [default: 0.0]
+    -h --help                   Show help
+    --generations GENERATIONS   Generations to run the EA [default: 500]
+    --population POPULATION     Starting population size  [default: 10]
+    --mu MUTATION_RATE          Mutation rate [default: 0.1]
+    --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 5]
+    --processes PROCESSES       Number of processes to use [default: 1]
+    --output OUTPUT_FILE        File to write data to [default: ann_weights.csv]
+    --objective OBJECTIVE       Objective function [default: score]
+    --repetitions REPETITIONS   Repetitions in objective [default: 100]
+    --noise NOISE               Match noise [default: 0.00]
+    --nmoran NMORAN             Moran Population Size, if Moran objective [default: 4]
+    --features FEATURES         Number of ANN features [default: 17]
+    --hidden HIDDEN             Number of hidden nodes [default: 10]
+    --mu_distance DISTANCE      Delta max for weights updates [default: 5]
 """
 
-import csv
 from itertools import repeat
 from multiprocessing import Pool
 from operator import itemgetter
-import os
 import random
 from statistics import mean, pstdev
 
@@ -33,26 +39,52 @@ from docopt import docopt
 import numpy as np
 
 import axelrod as axl
+from axelrod import Actions, flip_action
 from axelrod.strategies.ann import ANN, split_weights
-from axelrod_utils import score_for, objective_match_score, objective_moran_win
+from axelrod_utils import Outputer, score_for, prepare_objective
+
+C, D = Actions.C, Actions.D
 
 ## Neural network specifics
 
-def get_random_weights(number):
-    return [random.uniform(-1, 1) for _ in range(number)]
+def num_weights(num_features, num_hidden):
+    size = num_features * num_hidden + 2 * num_hidden
+    return size
 
-def score_weights(weights, strategies, noise, input_values=17,
-                  hidden_layer_size=10):
-    in2h, h2o, bias = split_weights(weights, input_values, hidden_layer_size)
-    args = [in2h, h2o, bias]
-    return (score_for(ANN, args=args, opponents=strategies, noise=noise,
-                      objective=objective_match_score), weights)
+def random_params(num_features, num_hidden):
+    size = num_weights(num_features, num_hidden)
+    return [random.uniform(-1, 1) for _ in range(size)]
 
-def score_all_weights(population, strategies, noise, hidden_layer_size=10):
-    results = pool.starmap(score_weights,
-                           zip(population, repeat(strategies), repeat(noise),
-                               repeat(10), repeat(hidden_layer_size)))
-    return list(sorted(results, reverse=True))
+
+def represent_params(weights):
+    """Return a string representing the values of a lookup table dict"""
+    return ','.join(map(str, weights))
+
+
+def params_from_representation(string_id):
+    """Return a lookup table dict from a string representing the values"""
+    return list(map(float, string_id.split(',')))
+
+
+def copy_params(weights):
+    return list(weights)
+
+
+def score_single(weights, objective, num_features, num_hidden):
+    args = [weights, num_features, num_hidden]
+    return (score_for(ANN, args=args, objective=objective), weights)
+
+def score_all(population, pool, objective, num_features, num_hidden):
+    results = pool.starmap(
+        score_single,
+        zip(
+            population,
+            repeat(objective),
+            repeat(num_features),
+            repeat(num_hidden)
+        )
+    )
+    return list(results)
 
 ## Evolutionary Algorithm
 
@@ -63,11 +95,11 @@ def crossover(weights_collection):
             if i == j:
                 continue
             crosspoint = random.randrange(len(w1))
-            new_weights = list(w1[0:crosspoint]) + list(w2[crosspoint:])
+            new_weights = copy_params(w1[0:crosspoint]) + copy_params(w2[crosspoint:])
             copies.append(new_weights)
     return copies
 
-def mutate(copies, mutation_rate):
+def mutate(copies, mutation_rate, mutation_distance):
     randoms = np.random.random((len(copies), 190))
     for i, c in enumerate(copies):
         for j in range(len(c)):
@@ -76,72 +108,105 @@ def mutate(copies, mutation_rate):
                 c[j] = c[j] * r
     return copies
 
-def evolve(starting_weights, mutation_rate, mutation_distance, generations,
-           bottleneck, strategies, output_file, noise, hidden_layer_size=10):
 
-    # Append scores of 0 to starting parameters
-    current_bests = [[0, x] for x in starting_weights]
+def evolve(starting_population, objective, generations, bottleneck,
+           mutation_rate, processes, output_filename, param_args,
+           mutation_distance):
+    """
+    The function that does everything. Take a set of starting tables, and in
+    each generation:
+    - add a bunch more random tables
+    - simulate recombination between each pair of tables
+    - randomly mutate the current population of tables
+    - calculate the fitness function i.e. the average score per turn
+    - keep the best individuals and discard the rest
+    - write out summary statistics to the output file
+    """
+    pool = Pool(processes=processes)
+    outputer = Outputer(output_filename)
 
-    with open(output_file, 'w') as output:
-        writer = csv.writer(output)
+    current_bests = [[0, t] for t in starting_population]
 
-        for generation in range(generations):
-            print("Generation " + str(generation))
-            size = 19 * hidden_layer_size
-            random_weights = [get_random_weights(size) for _ in range(4)]
-            weights_to_copy = [list(x[1]) for x in current_bests]
-            weights_to_copy += random_weights
+    for generation in range(generations):
+        # Because this is a long-running process we'll just keep appending to
+        # the output file so we can monitor it while it's running
+        print("Starting Generation " + str(generation))
 
-            # Crossover
-            copies = crossover(weights_to_copy)
-            # Mutate
-            copies = mutate(copies, mutation_rate)
+        # The tables at the start of this generation are the best ones from
+        # the previous generation (i.e. the second element of each tuple)
+        # plus a bunch of random ones
+        random_tables = [random_params(*param_args) for _ in range(4)]
+        tables_to_copy = [copy_params(x[1]) for x in current_bests]
+        tables_to_copy += random_tables
 
-            population = copies + [list(x[1]) for x in current_bests] + random_weights
+        # Crossover
+        copies = crossover(tables_to_copy)
+        # Mutate
+        copies = mutate(copies, mutation_rate, mutation_distance)
 
-            # map the population to get a list of (score, weights) tuples
-            # this list will be sorted by score, best weights first
-            results = score_all_weights(population, strategies, noise=noise,
-                                        hidden_layer_size=hidden_layer_size)
+        # The population of tables we want to consider includes the
+        # recombined, mutated copies, plus the originals
+        population = copies + [copy_params(x[1]) for x in current_bests]
+        # Map the population to get a list of (score, table) tuples
 
-            results.sort(key=itemgetter(0), reverse=True)
-            current_bests = results[0: bottleneck]
+        # This list will be sorted by score, best tables first
+        results = score_all(population, pool, objective, *param_args)
 
-            # get all the scores for this generation
-            scores = [score for (score, weights) in results]
+        # The best tables from this generation become the starting tables
+        # for the next generation
+        results.sort(key=itemgetter(0), reverse=True)
+        current_bests = results[0: bottleneck]
 
-            # Write the data
-            row = [generation, mean(scores), pstdev(scores), mutation_rate,
-                   mutation_distance, results[0][0]]
-            row.extend(results[0][1])
-            writer.writerow(row)
-            output.flush()
-            os.fsync(output.fileno())
+        # get all the scores for this generation
+        scores = [score for (score, table) in results]
 
-            print("Generation", generation, "| Best Score:", results[0][0])
+        # Write the data
+        row = [generation, mean(scores), pstdev(scores), results[0][0],
+               represent_params(results[0][1])]
+        row.extend(results[0][1])
+        outputer.write(row)
+
+        print("Generation", generation, "| Best Score:", results[0][0],
+              represent_params(results[0][1]))
+
+        # if decay:
+        #     mutation_rate *= 0.995
+        #     mutation_distance *= 0.995
 
     return current_bests
 
 
+
+
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='ANN Evolver 0.2')
-    # set up the process pool
-    pool = Pool(processes=int(arguments['-i']))
+    print(arguments)
+    processes = int(arguments['--processes'])
+
     # Vars for the genetic algorithm
-    mutation_rate = float(arguments['-u'])
-    generations = int(arguments['-g'])
-    bottleneck = int(arguments['-b'])
-    mutation_distance = float(arguments['-d'])
-    starting_population = int(arguments['-k'])
-    output_file = arguments['-o']
-    noise = float(arguments['-n'])
+    population = int(arguments['--population'])
+    mutation_rate = float(arguments['--mu'])
+    generations = int(arguments['--generations'])
+    bottleneck = int(arguments['--bottleneck'])
+    output_filename = arguments['--output']
 
-    hidden_layer_size = 10
-    size = 19 * hidden_layer_size
+    # Objective
+    name = str(arguments['--objective'])
+    repetitions = int(arguments['--repetitions'])
+    noise = float(arguments['--noise'])
+    nmoran = int(arguments['--nmoran'])
 
-    starting_weights = [get_random_weights(size) for _ in range(starting_population)]
-    strategies = axl.short_run_time_strategies
+    # ANN
+    num_features = int(arguments['--features'])
+    num_hidden = int(arguments['--hidden'])
+    mutation_distance = float(arguments['--mu_distance'])
+    param_args = [num_features, num_hidden]
 
-    evolve(starting_weights, mutation_rate, mutation_distance, generations,
-           bottleneck, strategies, output_file, noise,
-           hidden_layer_size=hidden_layer_size)
+    objective = prepare_objective(name, noise, repetitions, nmoran)
+
+    starting_population = [random_params(*param_args) for _ in range(population)]
+
+    # strategies = axl.short_run_time_strategies
+
+    evolve(starting_population, objective, generations, bottleneck,
+           mutation_rate, processes, output_filename, param_args, mutation_distance)

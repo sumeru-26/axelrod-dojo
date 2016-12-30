@@ -1,64 +1,67 @@
-"""FSM Evolve.
+"""
+Finite State Machine Evolver
 
 Usage:
-    fsm_evolve.py [-h] [-s NUM_STATES] [-g GENERATIONS]
-    [-k STARTING_POPULATION] [-u MUTATION_RATE] [-b BOTTLENECK]
-    [-i PROCESSORS] [-f OUTPUT_FILE] [-n NOISE]
+    fsm_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
+    [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
+    [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
+    [--noise NOISE] [--nmoran NMORAN]
+    [--states NUM_STATES]
 
 Options:
-    -h --help                   show this
-    -s NUM_STATES               number FSM states [default: 16]
-    -g GENERATIONS              how many generations to run the program for [default: 500]
-    -k STARTING_POPULATION      starting population size for the simulation [default: 10]
-    -u MUTATION_RATE            mutation rate i.e. probability that a given value will flip [default: 0.1]
-    -b BOTTLENECK               number of individuals to keep from each generation [default: 10]
-    -i PROCESSORS               number of processors to use [default: 1]
-    -f OUTPUT_FILE              file to write data to [default: fsm_tables.csv]
-    -n NOISE                    match noise [default: 0.00]
+    -h --help                   Show help
+    --generations GENERATIONS   Generations to run the EA [default: 500]
+    --population POPULATION     Starting population size  [default: 10]
+    --mu MUTATION_RATE          Mutation rate [default: 0.1]
+    --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 5]
+    --processes PROCESSES       Number of processes to use [default: 1]
+    --output OUTPUT_FILE        File to write data to [default: fsm_tables.csv]
+    --objective OBJECTIVE       Objective function [default: score]
+    --repetitions REPETITIONS   Repetitions in objective [default: 100]
+    --noise NOISE               Match noise [default: 0.00]
+    --nmoran NMORAN             Moran Population Size, if Moran objective [default: 4]
+    --states NUM_STATES         Number of FSM states [default: 8]
 """
 
-import csv
 from itertools import repeat
 from multiprocessing import Pool
 from operator import itemgetter
-import os
 from random import randrange, choice
 from statistics import mean, pstdev
 
 from docopt import docopt
 import numpy as np
 
-from axelrod import flip_action
+from axelrod import Actions, flip_action
 from axelrod.strategies.finite_state_machines import FSMPlayer
-from axelrod_utils import score_for, objective_match_score, objective_moran_win
+from axelrod_utils import Outputer, score_for, prepare_objective
 
+C, D = Actions.C, Actions.D
 
 ## FSM Tables
 
-def get_random_tables(num_states, num_tables):
-    """Return randomly-generated tables."""
-    tables = []
-    for i in range(num_tables):
-        table = []
-        for j in range(num_states):
-            next_state = randrange(num_states)
-            next_action = choice(['C', 'D'])
-            row = [j, 'C', next_state, next_action]
-            table.append(row)
-            next_state = randrange(num_states)
-            next_action = choice(['C', 'D'])
-            row = [j, 'D', next_state, next_action]
-            table.append(row)
-        tables.append(table)
-    return tables
 
-def table_representation(table):
+def random_params(num_states):
+    """Return randomly-generated parameters."""
+    table = []
+    actions = (C, D)
+    for j in range(num_states):
+        for action in actions:
+            next_state = randrange(num_states)
+            next_action = choice(actions)
+            row = [j, action, next_state, next_action]
+            table.append(row)
+    return table
+
+
+def represent_params(table):
     ss = []
     for row in table:
         ss.append("_".join(list(map(str, row))))
     return ":".join(ss)
 
-def table_from_representation(rep):
+
+def params_from_representation(rep):
     table = []
     lines = rep.split(':')
     for line in lines:
@@ -66,26 +69,28 @@ def table_from_representation(rep):
         table.append(row)
     return table
 
-def copy_table(table):
+
+def copy_params(table):
     new = list(map(list, table))
     return new
 
-def score_table(table, noise):
+
+def score_single(table, objective):
     """
     Take a lookup table dict and return a tuple of the score and the table.
     """
-    return (score_for(FSMPlayer, args=[table, 0, 'C'], noise=noise,
-                      # objective=objective_moran_win), table)
-                      objective=objective_match_score), table)
+    return (score_for(FSMPlayer, objective=objective, args=[table, 0, 'C']),
+            table)
 
 
-def score_all_tables(tables, pool, noise):
+def score_all(tables, pool, objective):
     """Use a multiprocessing Pool to take a bunch of tables and score them"""
-    results = list(pool.starmap(score_table, zip(tables, repeat(noise))))
-    results.sort(reverse=True, key=itemgetter(0))
+    results = list(pool.starmap(score_single, zip(tables, repeat(objective))))
     return list(results)
 
+
 ## Evolutionary Algorithm
+
 
 def crossover(tables):
     copies = []
@@ -97,10 +102,11 @@ def crossover(tables):
                 continue
             # For reproduction, pick a random crossover point
             crosspoint = 2 * randrange(num_states)
-            new_table = list(map(list, t1[:crosspoint]))
-            new_table += list(map(list, t2[crosspoint:]))
+            new_table  = copy_params(t1[:crosspoint])
+            new_table += copy_params(t2[crosspoint:])
             copies.append(new_table)
     return copies
+
 
 def mutate(copies, mutation_rate):
     randoms = np.random.random((len(copies), len(copies[0])))
@@ -120,8 +126,10 @@ def mutate(copies, mutation_rate):
                 row[1] = n1
     return copies
 
-def evolve(starting_tables, mutation_rate, generations, bottleneck, pool,
-           num_states, starting_pop, output_file, noise):
+
+def evolve(starting_population, objective, generations, bottleneck,
+           mutation_rate, processes, output_filename, param_args):
+
     """
     The function that does everything. Take a set of starting tables, and in
     each generation:
@@ -133,80 +141,81 @@ def evolve(starting_tables, mutation_rate, generations, bottleneck, pool,
     - write out summary statistics to the output file
     """
 
-    # Current_bests is a list of 2-tuples, each of which consists of a score
-    # and a lookup table initially the collection of best tables are the ones
-    # supplied to start with
-    current_bests = [[0, t] for t in starting_tables]
+    pool = Pool(processes=processes)
+    outputer = Outputer(output_filename)
 
-    # keys = list(sorted(create_lookup_table_keys(plays, opp_plays, start_plays)))
+    current_bests = [[0, t] for t in starting_population]
 
     for generation in range(generations):
         # Because this is a long-running process we'll just keep appending to
         # the output file so we can monitor it while it's running
-        with open(output_file, 'w') as output:
-            writer = csv.writer(output)
-            print("Generation " + str(generation))
+        print("Starting Generation " + str(generation))
 
-            # The tables at the start of this generation are the best ones from
-            # the previous generation (i.e. the second element of each tuple)
-            # plus a bunch of random ones
-            random_tables = get_random_tables(num_states, 4)
-            tables_to_copy = [copy_table(x[1]) for x in current_bests]
-            tables_to_copy += random_tables
+        # The tables at the start of this generation are the best ones from
+        # the previous generation (i.e. the second element of each tuple)
+        # plus a bunch of random ones
+        random_tables = [random_params(*param_args) for _ in range(4)]
+        tables_to_copy = [copy_params(x[1]) for x in current_bests]
+        tables_to_copy += random_tables
 
-            # Crossover
-            copies = crossover(tables_to_copy)
-            # Mutate
-            copies = mutate(copies, mutation_rate)
+        # Crossover
+        copies = crossover(tables_to_copy)
+        # Mutate
+        copies = mutate(copies, mutation_rate)
 
-            # The population of tables we want to consider includes the
-            # recombined, mutated copies, plus the originals
-            population = copies + [copy_table(x[1]) for x in current_bests]
-            # Map the population to get a list of (score, table) tuples
-            # This list will be sorted by score, best tables first
-            results = score_all_tables(population, pool, noise)
+        # The population of tables we want to consider includes the
+        # recombined, mutated copies, plus the originals
+        population = copies + [copy_params(x[1]) for x in current_bests]
+        # Map the population to get a list of (score, table) tuples
 
-            # The best tables from this generation become the starting tables
-            # for the next generation
-            results.sort(key=itemgetter(0), reverse=True)
-            current_bests = results[0: bottleneck]
+        # This list will be sorted by score, best tables first
+        results = score_all(population, pool, objective)
 
-            # get all the scores for this generation
-            scores = [score for (score, table) in results]
+        # The best tables from this generation become the starting tables
+        # for the next generation
+        results.sort(key=itemgetter(0), reverse=True)
+        current_bests = results[0: bottleneck]
 
-            # Write the data
-            row = [generation, mean(scores), pstdev(scores), results[0][0],
-                   table_representation(results[0][1])]
-            row.extend(results[0][1])
-            writer.writerow(row)
-            output.flush()
-            os.fsync(output.fileno())
+        # get all the scores for this generation
+        scores = [score for (score, table) in results]
 
-            print("Generation", generation, "| Best Score:", results[0][0],
-                  table_representation(results[0][1]))
+        # Write the data
+        row = [generation, mean(scores), pstdev(scores), results[0][0],
+               represent_params(results[0][1])]
+        row.extend(results[0][1])
+        outputer.write(row)
+
+        print("Generation", generation, "| Best Score:", results[0][0],
+              represent_params(results[0][1]))
     return current_bests
-
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='FSM Evolver 0.2')
-    # set up the process pool
-    pool = Pool(processes=int(arguments['-i']))
+    print(arguments)
+    processes = int(arguments['--processes'])
 
-    # vars for the genetic algorithm
-    starting_pop = int(arguments['-k'])
-    mutation_rate = float(arguments['-u'])
-    generations = int(arguments['-g'])
-    bottleneck = int(arguments['-b'])
-    num_states = int(arguments['-s'])
-    output_file = arguments['-f']
-    noise = float(arguments['-n'])
+    # Vars for the genetic algorithm
+    population = int(arguments['--population'])
+    mutation_rate = float(arguments['--mu'])
+    generations = int(arguments['--generations'])
+    bottleneck = int(arguments['--bottleneck'])
+    output_filename = arguments['--output']
 
-    # generate a starting population of tables and score them
-    # these will start off the first generation
-    starting_tables = get_random_tables(num_states, starting_pop)
+    # Objective
+    name = str(arguments['--objective'])
+    repetitions = int(arguments['--repetitions'])
+    noise = float(arguments['--noise'])
+    nmoran = int(arguments['--nmoran'])
 
-    # real_starting_tables = score_all_tables(starting_tables, pool, noise)
+    # FSM
+    num_states = int(arguments['--states'])
+    param_args = [num_states]
 
-    # kick off the evolve function
-    evolve(starting_tables, mutation_rate, generations, bottleneck, pool,
-           num_states, starting_pop, output_file, noise)
+    objective = prepare_objective(name, noise, repetitions, nmoran)
+
+    # Generate random starting population
+    starting_population = [random_params(*param_args) for _ in range(population)]
+
+    # Kick off the evolve function
+    evolve(starting_population, objective, generations, bottleneck,
+           mutation_rate, processes, output_filename, param_args)

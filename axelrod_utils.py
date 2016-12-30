@@ -1,14 +1,51 @@
+import csv
+from functools import partial
+import os
 from statistics import mean
 
 import axelrod as axl
 
 
-def objective_match_score(me, other, turns, noise):
+class Outputer(object):
+    def __init__(self, filename, mode='w'):
+        self.output = open(filename, mode)
+        self.writer = csv.writer(self.output)
+
+    def write(self, row):
+        self.writer.writerow(row)
+        self.output.flush()
+        os.fsync(self.output.fileno())
+
+
+## Objective functions for optimization
+
+def prepare_objective(name="score", noise=0., repetitions=None, N=None):
+    name = name.lower()
+    if name not in ["score", "score_diff", "moran"]:
+        raise ValueError("Score must be one of score, score_diff, or moran")
+    if name == "moran":
+        if repetitions is None:
+            repetitions = 1000
+        if N is None:
+            N = 4
+        objective = partial(objective_moran_win, noise=noise,
+                            repetitions=repetitions, N=N)
+    elif name == "score":
+        if repetitions is None:
+            repetitions = 20
+        objective = partial(objective_score, noise=noise,
+                            repetitions=repetitions)
+    elif name == "score_diff":
+        if repetitions is None:
+            repetitions = 20
+        objective = partial(objective_score_diff, noise=noise,
+                            repetitions=repetitions)
+    return objective
+
+def objective_score(me, other, turns, noise, repetitions):
     """Objective function to maximize total score over matches."""
     match = axl.Match((me, other), turns=turns, noise=noise)
-    if match._stochastic:
-        repetitions = 20
-    else:
+    if not match._stochastic:
         repetitions = 1
     scores_for_this_opponent = []
 
@@ -17,12 +54,10 @@ def objective_match_score(me, other, turns, noise):
         scores_for_this_opponent.append(match.final_score_per_turn()[0])
     return scores_for_this_opponent
 
-def objective_match_score_difference(me, other, turns, noise):
+def objective_score_diff(me, other, turns, noise, repetitions):
     """Objective function to maximize total score difference over matches."""
     match = axl.Match((me, other), turns=turns, noise=noise)
-    if match._stochastic:
-        repetitions = 20
-    else:
+    if not match._stochastic:
         repetitions = 1
     scores_for_this_opponent = []
 
@@ -33,7 +68,7 @@ def objective_match_score_difference(me, other, turns, noise):
         scores_for_this_opponent.append(score_diff)
     return scores_for_this_opponent
 
-def objective_moran_win(me, other, turns, noise=0, repetitions=100):
+def objective_moran_win(me, other, turns, noise, repetitions):
     """Objective function to maximize Moran fixations over N=4 matches"""
     assert(noise == 0)
     # N = 4 population
@@ -50,8 +85,10 @@ def objective_moran_win(me, other, turns, noise=0, repetitions=100):
             scores_for_this_opponent.append(0)
     return scores_for_this_opponent
 
-def score_for(my_strategy_factory, args=None, opponents=None, turns=200,
-              noise=0., objective=objective_match_score):
+# Evolutionary Algorithm
+
+def score_for(strategy_factory, objective, args=None, opponents=None,
+              turns=200):
     """
     Given a function that will return a strategy, calculate the average score
     per turn against all ordinary strategies. If the opponent is classified as
@@ -66,9 +103,9 @@ def score_for(my_strategy_factory, args=None, opponents=None, turns=200,
         opponents = axl.short_run_time_strategies
 
     for opponent in opponents:
-        me = my_strategy_factory(*args)
+        me = strategy_factory(*args)
         other = opponent()
-        scores_for_this_opponent = objective(me, other, turns, noise)
+        scores_for_this_opponent = objective(me, other, turns)
         mean_vs_opponent = mean(scores_for_this_opponent)
         scores_for_all_opponents.append(mean_vs_opponent)
 
