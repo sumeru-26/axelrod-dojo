@@ -63,7 +63,7 @@ Usage:
     lookup_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
     [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
     [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
-    [--noise NOISE] [--nmoran NMORAN]
+    [--turns TURNS] [--noise NOISE] [--nmoran NMORAN]
     [--plays PLAYS] [--op_plays OP_PLAYS] [--op_start_plays OP_START_PLAYS]
 
 Options:
@@ -76,17 +76,13 @@ Options:
     --output OUTPUT_FILE        File to write data to [default: lookup_tables.csv]
     --objective OBJECTIVE       Objective function [default: score]
     --repetitions REPETITIONS   Repetitions in objective [default: 100]
+    --turns TURNS               Turns in each match [default: 200]
     --noise NOISE               Match noise [default: 0.00]
     --nmoran NMORAN             Moran Population Size, if Moran objective [default: 4]
     --plays PLAYS               Number of recent plays in the lookup table [default: 2]
     --op_plays OP_PLAYS         Number of recent plays in the lookup table [default: 2]
     --op_start_plays OP_START_PLAYS   Number of opponent starting plays in the lookup table [default: 2]
 ```
-
-There are a number of options and you'll want to set the
-mutation rate appropriately. The number of keys defining the strategy is
-`2**{n + m + 1}` so you want a mutation rate in the neighborhood of `2**(-n-m)`
-so that there's enough variation introduced.
 
 ### Particle Swarm
 
@@ -100,21 +96,19 @@ Based on Martin Jones @mojones original LookerUp code
 
 Usage:
     pso_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
-    [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
-    [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
-    [--noise NOISE] [--nmoran NMORAN]
+    [--processes PROCESSORS] [--output OUTPUT_FILE] [--objective OBJECTIVE]
+    [--repetitions REPETITIONS] [--turns TURNS] [--noise NOISE]
+    [--nmoran NMORAN]
     [--plays PLAYS] [--op_plays OP_PLAYS] [--op_start_plays OP_START_PLAYS]
 
 Options:
     -h --help                   Show help
-    --generations GENERATIONS   Generations to run the EA [default: 500]
     --population POPULATION     Starting population size  [default: 10]
-    --mu MUTATION_RATE          Mutation rate [default: 0.1]
-    --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 5]
     --processes PROCESSES       Number of processes to use [default: 1]
     --output OUTPUT_FILE        File to write data to [default: pso_tables.csv]
     --objective OBJECTIVE       Objective function [default: score]
     --repetitions REPETITIONS   Repetitions in objective [default: 100]
+    --turns TURNS               Turns in each match [default: 200]
     --noise NOISE               Match noise [default: 0.00]
     --nmoran NMORAN             Moran Population Size, if Moran objective [default: 4]
     --plays PLAYS               Number of recent plays in the lookup table [default: 2]
@@ -139,7 +133,7 @@ Usage:
     ann_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
     [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
     [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
-    [--noise NOISE] [--nmoran NMORAN]
+    [--turns TURNS] [--noise NOISE] [--nmoran NMORAN]
     [--features FEATURES] [--hidden HIDDEN] [--mu_distance DISTANCE]
 
 Options:
@@ -152,6 +146,7 @@ Options:
     --output OUTPUT_FILE        File to write data to [default: ann_weights.csv]
     --objective OBJECTIVE       Objective function [default: score]
     --repetitions REPETITIONS   Repetitions in objective [default: 100]
+    --turns TURNS               Turns in each match [default: 200]
     --noise NOISE               Match noise [default: 0.00]
     --nmoran NMORAN             Moran Population Size, if Moran objective [default: 4]
     --features FEATURES         Number of ANN features [default: 17]
@@ -169,19 +164,20 @@ Usage:
     fsm_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
     [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
     [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
-    [--noise NOISE] [--nmoran NMORAN]
+    [--turns TURNS] [--noise NOISE] [--nmoran NMORAN]
     [--states NUM_STATES]
 
 Options:
     -h --help                   Show help
     --generations GENERATIONS   Generations to run the EA [default: 500]
-    --population POPULATION     Starting population size  [default: 10]
+    --population POPULATION     Population size  [default: 40]
     --mu MUTATION_RATE          Mutation rate [default: 0.1]
-    --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 5]
+    --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 10]
     --processes PROCESSES       Number of processes to use [default: 1]
     --output OUTPUT_FILE        File to write data to [default: fsm_tables.csv]
     --objective OBJECTIVE       Objective function [default: score]
     --repetitions REPETITIONS   Repetitions in objective [default: 100]
+    --turns TURNS               Turns in each match [default: 200]
     --noise NOISE               Match noise [default: 0.00]
     --nmoran NMORAN             Moran Population Size, if Moran objective [default: 4]
     --states NUM_STATES         Number of FSM states [default: 8]
