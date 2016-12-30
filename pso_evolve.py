@@ -6,18 +6,13 @@ Original version by Georgios Koutsovoulos @GDKO :
 Based on Martin Jones @mojones original LookerUp code
 
 Usage:
-    pso_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
-    [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
+    pso_evolve.py [-h] [--processes PROCESSORS]
     [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
     [--noise NOISE] [--nmoran NMORAN]
     [--plays PLAYS] [--op_plays OP_PLAYS] [--op_start_plays OP_START_PLAYS]
 
 Options:
     -h --help                   Show help
-    --generations GENERATIONS   Generations to run the EA [default: 500]
-    --population POPULATION     Starting population size  [default: 10]
-    --mu MUTATION_RATE          Mutation rate [default: 0.1]
-    --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 5]
     --processes PROCESSES       Number of processes to use [default: 1]
     --output OUTPUT_FILE        File to write data to [default: pso_tables.csv]
     --objective OBJECTIVE       Objective function [default: score]
