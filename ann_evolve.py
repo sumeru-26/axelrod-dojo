@@ -27,7 +27,7 @@ Options:
     --nmoran NMORAN             Moran Population Size, if Moran objective [default: 4]
     --features FEATURES         Number of ANN features [default: 17]
     --hidden HIDDEN             Number of hidden nodes [default: 10]
-    --mu_distance DISTANCE      Delta max for weights updates [default: 5]
+    --mu_distance DISTANCE      Delta max for weights updates [default: 10]
 """
 
 import random

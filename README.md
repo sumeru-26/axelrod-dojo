@@ -3,42 +3,59 @@
 This repository contains reinforcement learning training code for the following
 strategy types:
 * Lookup tables (LookerUp)
-* Particle Swarm algorithms (PSOGambler)
+* Particle Swarm algorithms (PSOGambler), a stochastic version of LookerUp
 * Feed Forward Neural Network (EvolvedANN)
 * Finite State Machine (FSMPlayer)
+* Hidden Markov Models (HMMPLayer), essentially a stochastic version of a finite state machine
 
-The training is done by evolutionary algorithms or particle swarm algorithms. There
-is another repository that trains Neural Networks with gradient descent. In this
-repository there are scripts for each strategy type:
+Model training is by [evolutionary algorithms](https://en.wikipedia.org/wiki/Evolutionary_algorithm)
+ or [particle swarm algorithms](https://en.wikipedia.org/wiki/Particle_swarm_optimization).
+There is another repository in the [Axerlod project](https://github.com/Axelrod-Python/Axelrod)
+that trains Neural Networks with gradient descent (using tensorflow)
+that will likely be incorporated here. In this repository there are scripts
+for each strategy type with a similar interface:
 
 * [looker_evolve.py](looker_evolve.py)
 * [pso_evolve.py](pso_evolve.py)
 * [ann_evolve.py](ann_evolve.py)
 * [fsm_evolve.py](fsm_evolve.py)
+* [hmm_evolve.py](hmm_evolve.py)
+
+See below for usage instructions.
 
 In the original iteration the strategies were run against all the default
-strategies in the Axelrod library. This is slow and probably not necessary. For
-example the Meta players are just combinations of the other players, and very
-computationally intensive; it's probably ok to remove those. So by default the
-training strategies are the `short_run_time_strategies` from the Axelrod library.
+strategies in the Axelrod library. This is slow and probably not necessary.
+By default the training strategies are the `short_run_time_strategies` from the
+Axelrod library. You may specify any other set of strategies for training.
+
+Basic testing is done by running the trained model against the full set of
+strategies in various tournaments. Depending on the optimization function
+testing methods will vary.
 
 ## The Strategies
 
-The LookerUp strategies are based on lookup tables with three parameters:
-* n1, the number of rounds of trailing history to use and
+**LookerUp** is based on lookup tables with three parameters:
+* n1, the number of rounds of trailing history to use
 * n2, the number of rounds of trailing opponent history to use
 * m, the number of rounds of initial opponent play to use
 
-PSOGambler is a stochastic version of LookerUp, trained with a particle swarm
-algorithm. The resulting strategies are generalizations of memory-N strategies.
+These are generalizations of deterministic memory-N strategies.
 
-EvolvedANN is one hidden layer feed forward neural network based algorithm.
-Various features are derived from the history of play. The number of nodes in
-the hidden layer can be changed.
+**PSOGambler** is a stochastic version of LookerUp, trained with a particle
+swarm algorithm. The resulting strategies are generalizations of memory-N
+strategies.
 
-EvolvedFSM searches over finite state machines with a given number of states.
+**EvolvedANN** is based on a [feed forward neural network](https://en.wikipedia.org/wiki/Feedforward_neural_network)
+with a single hidden layer. Various features are derived from the history of play.
+The number of nodes in the hidden layer can also be changed.
 
-Note that large values of the parameters will make the strategies prone to
+**EvolvedFSM** searches over [finite state machines](https://en.wikipedia.org/wiki/Finite-state_machine)
+with a given number of states.
+
+**EvolvedHMM** implements a simple [hidden markov model](https://en.wikipedia.org/wiki/Hidden_Markov_model)
+based strategy, a stochastic finite state machine.
+
+Note that large values of some parameters will make the strategies prone to
 overfitting.
 
 ## Optimization Functions
@@ -181,6 +198,36 @@ Options:
     --noise NOISE               Match noise [default: 0.00]
     --nmoran NMORAN             Moran Population Size, if Moran objective [default: 4]
     --states NUM_STATES         Number of FSM states [default: 8]
+```
+
+
+### Hidden Markov Model
+
+```bash
+$ python hmm_evolve.py -h
+Hidden Markov Model Evolver
+
+Usage:
+    fsm_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
+    [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
+    [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
+    [--turns TURNS] [--noise NOISE] [--nmoran NMORAN]
+    [--states NUM_STATES]
+
+Options:
+    -h --help                   Show help
+    --generations GENERATIONS   Generations to run the EA [default: 500]
+    --population POPULATION     Population size  [default: 40]
+    --mu MUTATION_RATE          Mutation rate [default: 0.1]
+    --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 10]
+    --processes PROCESSES       Number of processes to use [default: 1]
+    --output OUTPUT_FILE        File to write data to [default: fsm_tables.csv]
+    --objective OBJECTIVE       Objective function [default: score]
+    --repetitions REPETITIONS   Repetitions in objective [default: 100]
+    --turns TURNS               Turns in each match [default: 200]
+    --noise NOISE               Match noise [default: 0.00]
+    --nmoran NMORAN             Moran Population Size, if Moran objective [default: 4]
+    --states NUM_STATES         Number of FSM states [default: 5]
 ```
 
 ## Open questions

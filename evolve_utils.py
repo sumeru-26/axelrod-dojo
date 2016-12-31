@@ -74,11 +74,13 @@ def objective_score_diff(me, other, turns, noise, repetitions):
         scores_for_this_opponent.append(score_diff)
     return scores_for_this_opponent
 
-def objective_moran_win(me, other, turns, noise, repetitions):
+def objective_moran_win(me, other, turns, noise, repetitions, N=5):
     """Objective function to maximize Moran fixations over N=4 matches"""
     assert(noise == 0)
-    # N = 4 population
-    population = (me, me.clone(), other, other.clone())
+    population = []
+    for _ in range(N):
+        population.append(me.clone())
+        population.append(other.clone())
     mp = axl.MoranProcess(population, turns=turns, noise=noise)
 
     scores_for_this_opponent = []
@@ -117,7 +119,7 @@ class Params(object):
     def params(self):
         pass
 
-    def crossover(self):
+    def crossover(self, other):
         pass
 
 
@@ -196,7 +198,7 @@ class Population(object):
               repr(self.population[results[0][1]]))
         # Write the data
         row = [self.generation, mean(scores), pstdev(scores), results[0][0],
-               repr(results[0][1])]
+               repr(self.population[results[0][1]])]
         self.outputer.write(row)
 
         ## Next Population

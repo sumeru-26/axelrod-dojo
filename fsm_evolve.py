@@ -48,7 +48,6 @@ class FSMParams(Params):
     def __init__(self, num_states, mutation_rate=None, rows=None,
                  initial_state=0, initial_action=C):
         self.PlayerClass = FSMPlayer
-        # Initialize to "zero" state?
         self.num_states = num_states
         if mutation_rate is None:
             self.mutation_rate = 1 / (2 * num_states)
@@ -117,7 +116,6 @@ class FSMParams(Params):
             self.initial_action = flip_action(self.initial_action)
         if random.random() < self.mutation_rate / (10 * self.num_states):
             self.initial_state = randrange(self.num_states)
-        # return self
         # Change node size?
 
     @staticmethod
