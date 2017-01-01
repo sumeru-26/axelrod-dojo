@@ -15,7 +15,7 @@ Options:
     --mu MUTATION_RATE          Mutation rate [default: 0.1]
     --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 10]
     --processes PROCESSES       Number of processes to use [default: 1]
-    --output OUTPUT_FILE        File to write data to [default: fsm_tables.csv]
+    --output OUTPUT_FILE        File to write data to [default: hmm_fsm_tables.csv]
     --objective OBJECTIVE       Objective function [default: score]
     --repetitions REPETITIONS   Repetitions in objective [default: 100]
     --turns TURNS               Turns in each match [default: 200]
