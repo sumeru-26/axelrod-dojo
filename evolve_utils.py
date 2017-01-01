@@ -145,7 +145,7 @@ class Population(object):
         self.params_class = params_class
         self.bottleneck = bottleneck
         self.pool = Pool(processes=processes)
-        self.outputer = Outputer(output_filename)
+        self.outputer = Outputer(output_filename, mode='a')
         self.size = size
         self.objective = objective
         if not bottleneck:
@@ -204,12 +204,16 @@ class Population(object):
         ## Next Population
         indices_to_keep = [p for (s, p) in results[0: self.bottleneck]]
         self.subset_population(indices_to_keep)
-        # Add variants
+        # Add mutants of the best players
+        best_mutants = [p.copy() for p in self.population]
+        for p in best_mutants:
+            p.mutate()
+            self.population.append(p)
+        # Add random variants
         random_params = [self.params_class(*self.params_args)
                          for _ in range(self.bottleneck // 2)]
         params_to_modify = [params.copy() for params in self.population]
         params_to_modify += random_params
-
         # Crossover
         size_left = self.size - len(params_to_modify)
         params_to_modify = self.crossover(params_to_modify, size_left)
@@ -228,6 +232,23 @@ class Population(object):
         for _ in range(generations):
             next(self)
         pass
+
+
+def load_params(params_class, filename, num):
+    """Load the best num parameters from the given file."""
+    parser = params_class.parse_repr
+    all_params = []
+
+    with open(filename) as datafile:
+        reader = csv.reader(datafile)
+        for line in reader:
+            score, rep = float(line[-2]), line[-1]
+            all_params.append((score, rep))
+    all_params.sort(reverse=True)
+    best_params = []
+    for score, rep in all_params[:num]:
+        best_params.append(parser(rep))
+    return best_params
 
 
 ## This function is only used for PSO.

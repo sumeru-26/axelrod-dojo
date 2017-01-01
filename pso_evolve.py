@@ -15,7 +15,7 @@ Usage:
 Options:
     -h --help                   Show help
     --generations GENERATIONS   Generations to run the EA [default: 100]
-    --population POPULATION     Starting population size  [default: 100]
+    --population POPULATION     Starting population size  [default: 40]
     --processes PROCESSES       Number of processes to use [default: 1]
     --output OUTPUT_FILE        File to write data to [default: pso_tables.csv]
     --objective OBJECTIVE       Objective function [default: score]

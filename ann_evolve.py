@@ -15,11 +15,11 @@ Usage:
 Options:
     -h --help                   Show help
     --generations GENERATIONS   Generations to run the EA [default: 500]
-    --population POPULATION     Starting population size  [default: 10]
+    --population POPULATION     Starting population size  [default: 40]
     --mu MUTATION_RATE          Mutation rate [default: 0.1]
-    --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 5]
+    --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 10]
     --processes PROCESSES       Number of processes to use [default: 1]
-    --output OUTPUT_FILE        File to write data to [default: ann_weights.csv]
+    --output OUTPUT_FILE        File to write data to [default: ann_params.csv]
     --objective OBJECTIVE       Objective function [default: score]
     --repetitions REPETITIONS   Repetitions in objective [default: 100]
     --turns TURNS               Turns in each match [default: 200]
@@ -96,7 +96,7 @@ class ANNParams(Params):
         for i, r in enumerate(randoms):
             if r < mutation_rate:
                 p = 1 + random.uniform(-1, 1) * mutation_distance
-                weights[i] = weights[i] * p
+                weights[i] *= p
         return weights
 
     def mutate(self):
@@ -128,8 +128,8 @@ class ANNParams(Params):
     @classmethod
     def parse_repr(cls, s):
         elements = list(map(float, s.split(':')))
-        num_features = elements[0]
-        num_hidden = elements[1]
+        num_features = int(elements[0])
+        num_hidden = int(elements[1])
         weights = elements[2:]
         return cls(num_features, num_hidden, weights)
 

@@ -15,7 +15,7 @@ Options:
     --mu MUTATION_RATE          Mutation rate [default: 0.1]
     --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 10]
     --processes PROCESSES       Number of processes to use [default: 1]
-    --output OUTPUT_FILE        File to write data to [default: fsm_tables.csv]
+    --output OUTPUT_FILE        File to write data to [default: fsm_params.csv]
     --objective OBJECTIVE       Objective function [default: score]
     --repetitions REPETITIONS   Repetitions in objective [default: 100]
     --turns TURNS               Turns in each match [default: 200]
@@ -149,7 +149,7 @@ class FSMParams(Params):
     @classmethod
     def parse_repr(cls, s):
         rows = []
-        lines = rep.split(':')
+        lines = s.split(':')
         initial_state = int(lines[0])
         initial_action = lines[1]
 
@@ -157,7 +157,7 @@ class FSMParams(Params):
             row = line.split('_')
             rows.append(row)
         num_states = len(rows) // 2
-        return cls(num_states, rows, initial_state, initial_action)
+        return cls(num_states, 0.1, rows, initial_state, initial_action)
 
 
 if __name__ == '__main__':

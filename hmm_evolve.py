@@ -15,7 +15,7 @@ Options:
     --mu MUTATION_RATE          Mutation rate [default: 0.1]
     --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 10]
     --processes PROCESSES       Number of processes to use [default: 1]
-    --output OUTPUT_FILE        File to write data to [default: fsm_tables.csv]
+    --output OUTPUT_FILE        File to write data to [default: hmm_params.csv]
     --objective OBJECTIVE       Objective function [default: score]
     --repetitions REPETITIONS   Repetitions in objective [default: 100]
     --turns TURNS               Turns in each match [default: 200]
@@ -118,7 +118,8 @@ class HMMParams(Params):
             t_C.append(random_vector(num_states))
             t_D.append(random_vector(num_states))
         initial_state = randrange(num_states)
-        initial_action = choice([C, D])
+        # initial_action = choice([C, D])
+        initial_action = C
         return t_C, t_D, initial_state, initial_action
 
     def randomize(self):
@@ -178,7 +179,7 @@ class HMMParams(Params):
         ss = []
         for row in rows:
             ss.append("_".join(list(map(str, row))))
-        return ":".join(ss)
+        return "|".join(ss)
 
     def __repr__(self):
         return "{}:{}:{}:{}:{}".format(
@@ -189,18 +190,23 @@ class HMMParams(Params):
             self.repr_rows([self.emission_probabilities])
         )
 
-    # @classmethod
-    # def parse_repr(cls, s):
-    #     rows = []
-    #     lines = rep.split(':')
-    #     initial_state = int(lines[0])
-    #     initial_action = lines[1]
-    #
-    #     for line in lines[2:]:
-    #         row = line.split('_')
-    #         rows.append(row)
-    #     num_states = len(rows) // 2
-    #     return cls(num_states, rows, initial_state, initial_action)
+    @classmethod
+    def parse_repr(cls, s):
+        def parse_matrix(sm):
+            rows = []
+            lines = sm.split('|')
+            for line in lines:
+                row = line.split('_')
+                row = list(map(float, row))
+                rows.append(row)
+            return row
+        lines = s.split(':')
+        initial_state = int(lines[0])
+        initial_action = lines[1]
+        t_C = parse_matrix(lines[2])
+        t_D = parse_matrix(lines[3])
+        ps = parse_matrix(lines[4])
+        return cls(t_C, t_D, ps, initial_state, initial_action)
 
 
 if __name__ == '__main__':

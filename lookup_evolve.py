@@ -10,11 +10,11 @@ Usage:
 Options:
     -h --help                   Show help
     --generations GENERATIONS   Generations to run the EA [default: 500]
-    --population POPULATION     Starting population size  [default: 10]
+    --population POPULATION     Starting population size  [default: 40]
     --mu MUTATION_RATE          Mutation rate [default: 0.1]
-    --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 5]
+    --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 10]
     --processes PROCESSES       Number of processes to use [default: 1]
-    --output OUTPUT_FILE        File to write data to [default: lookup_tables.csv]
+    --output OUTPUT_FILE        File to write data to [default: lookup_params.csv]
     --objective OBJECTIVE       Objective function [default: score]
     --repetitions REPETITIONS   Repetitions in objective [default: 100]
     --turns TURNS               Turns in each match [default: 200]
@@ -131,7 +131,8 @@ class LookerUpParams(Params):
     @classmethod
     def parse_repr(cls, s):
         elements = s.split(':')
-        plays, op_plays, op_start_plays, initial_actions, pattern = elements
+        plays, op_plays, op_start_plays = list(map(int, elements[:3]))
+        initial_actions, pattern = elements[-2:]
         keys = create_lookup_table_keys(plays, op_plays, op_start_plays)
         table = dict(zip(keys, pattern))
         return cls(plays, op_plays, op_start_plays,
