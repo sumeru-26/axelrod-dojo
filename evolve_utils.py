@@ -25,17 +25,18 @@ class Outputer(object):
 
 ## Objective functions for optimization
 
-def prepare_objective(name="score", turns=200, noise=0., repetitions=None, N=None):
+def prepare_objective(name="score", turns=200, noise=0., repetitions=None,
+                      nmoran=None):
     name = name.lower()
     if name not in ["score", "score_diff", "moran"]:
         raise ValueError("Score must be one of score, score_diff, or moran")
     if name == "moran":
         if repetitions is None:
             repetitions = 1000
-        if N is None:
-            N = 4
+        if nmoran is None:
+            nmoran = 4
         objective = partial(objective_moran_win, turns=turns, noise=noise,
-                            repetitions=repetitions, N=N)
+                            repetitions=repetitions, N=nmoran)
     elif name == "score":
         if repetitions is None:
             repetitions = 20
@@ -48,6 +49,7 @@ def prepare_objective(name="score", turns=200, noise=0., repetitions=None, N=Non
                             repetitions=repetitions)
     return objective
 
+
 def objective_score(me, other, turns, noise, repetitions):
     """Objective function to maximize total score over matches."""
     match = axl.Match((me, other), turns=turns, noise=noise)
@@ -59,6 +61,7 @@ def objective_score(me, other, turns, noise, repetitions):
         match.play()
         scores_for_this_opponent.append(match.final_score_per_turn()[0])
     return scores_for_this_opponent
+
 
 def objective_score_diff(me, other, turns, noise, repetitions):
     """Objective function to maximize total score difference over matches."""
@@ -73,6 +76,7 @@ def objective_score_diff(me, other, turns, noise, repetitions):
         score_diff = final_scores[0] - final_scores[1]
         scores_for_this_opponent.append(score_diff)
     return scores_for_this_opponent
+
 
 def objective_moran_win(me, other, turns, noise, repetitions, N=5):
     """Objective function to maximize Moran fixations over N=4 matches"""
