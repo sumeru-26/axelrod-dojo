@@ -80,7 +80,6 @@ def objective_score_diff(me, other, turns, noise, repetitions):
 
 def objective_moran_win(me, other, turns, noise, repetitions, N=5):
     """Objective function to maximize Moran fixations over N=4 matches"""
-    assert(noise == 0)
     population = []
     for _ in range(N):
         population.append(me.clone())
