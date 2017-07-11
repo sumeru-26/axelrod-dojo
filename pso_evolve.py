@@ -33,15 +33,17 @@ import pyswarm
 
 from axelrod import Gambler
 from axelrod.strategies.lookerup import (
-    create_lookup_table_keys, create_lookup_table_from_pattern)
+    create_lookup_table_keys, Plays)
 from evolve_utils import prepare_objective, score_for
 
 
 def optimizepso(param_args, objective, opponents=None):
     def f(pattern):
-        lookup_table = create_lookup_table_from_pattern(
-            *param_args, pattern=pattern)
-        return -score_for(Gambler, objective, args=[lookup_table],
+        self_plays, op_plays, op_openings = param_args
+        params = Plays(self_plays=self_plays, op_plays=op_plays,
+                       op_openings=op_openings)
+        return -score_for(Gambler, objective,
+                          args=[None, None, pattern, params],
                           opponents=opponents)
     return f
 
