@@ -240,3 +240,4 @@ strategy?
 opponents are `[RandomPlayer(x) for x in np.arange(0, 1, 0.01)], what lookup
 table is best? Is it much different from the generic table?
 * Are there other features that would improve the performance of EvolvedANN?
+
