@@ -30,10 +30,12 @@ class TestPrepareObjective(unittest.TestCase):
             utils.prepare_objective(name=name)
 
     def test_score(self):
-        objective = utils.prepare_objective(name="score",
-                                            turns=200,
-                                            noise=0,
-                                            repetitions=5)
+        objective = utils.prepare_objective(
+                                    name="score",
+                                    turns=200,
+                                    noise=0,
+                                    match_attributes={"length": float("inf")},
+                                    repetitions=5)
         self.assertIsInstance(objective, functools.partial)
         self.assertIn("objective_score ", str(objective))
 

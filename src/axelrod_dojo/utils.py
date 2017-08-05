@@ -30,7 +30,7 @@ class Outputer(object):
 ## Objective functions for optimization
 
 def prepare_objective(name="score", turns=200, noise=0., repetitions=None,
-                      nmoran=None):
+                      nmoran=None, match_attributes=None):
     name = name.lower()
     if name not in ["score", "score_diff", "moran"]:
         raise ValueError("Score must be one of score, score_diff, or moran")
@@ -40,23 +40,27 @@ def prepare_objective(name="score", turns=200, noise=0., repetitions=None,
         if nmoran is None:
             nmoran = 4
         objective = partial(objective_moran_win, turns=turns, noise=noise,
-                            repetitions=repetitions, N=nmoran)
+                            repetitions=repetitions, N=nmoran,
+                            match_attributes=match_attributes)
     elif name == "score":
         if repetitions is None:
             repetitions = 20
         objective = partial(objective_score, turns=turns, noise=noise,
-                            repetitions=repetitions)
+                            repetitions=repetitions,
+                            match_attributes=match_attributes)
     elif name == "score_diff":
         if repetitions is None:
             repetitions = 20
         objective = partial(objective_score_diff, turns=turns, noise=noise,
-                            repetitions=repetitions)
+                            repetitions=repetitions,
+                            match_attributes=match_attributes)
     return objective
 
 
-def objective_score(me, other, turns, noise, repetitions):
+def objective_score(me, other, turns, noise, repetitions, match_attributes=None):
     """Objective function to maximize total score over matches."""
-    match = axl.Match((me, other), turns=turns, noise=noise)
+    match = axl.Match((me, other), turns=turns, noise=noise,
+                      match_attributes=match_attributes)
     if not match._stochastic:
         repetitions = 1
     scores_for_this_opponent = []
@@ -67,9 +71,11 @@ def objective_score(me, other, turns, noise, repetitions):
     return scores_for_this_opponent
 
 
-def objective_score_diff(me, other, turns, noise, repetitions):
+def objective_score_diff(me, other, turns, noise, repetitions,
+                         match_attributes=None):
     """Objective function to maximize total score difference over matches."""
-    match = axl.Match((me, other), turns=turns, noise=noise)
+    match = axl.Match((me, other), turns=turns, noise=noise,
+                      match_attributes=match_attributes)
     if not match._stochastic:
         repetitions = 1
     scores_for_this_opponent = []
@@ -82,7 +88,8 @@ def objective_score_diff(me, other, turns, noise, repetitions):
     return scores_for_this_opponent
 
 
-def objective_moran_win(me, other, turns, noise, repetitions, N=5):
+def objective_moran_win(me, other, turns, noise, repetitions, N=5,
+                        match_attributes=None):
     """Objective function to maximize Moran fixations over N=4 matches"""
     population = []
     for _ in range(N):
