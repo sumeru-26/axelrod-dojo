@@ -30,7 +30,7 @@ Install a development version of the library:
 
     $ python setup.py develop
 
-Run the test:
+Run the tests:
 
     $ python -m unittest discover tests
 
@@ -39,11 +39,11 @@ Run the test:
 In this repository there are scripts
 for each strategy type with a similar interface:
 
-* [looker_evolve.py](looker_evolve.py)
-* [pso_evolve.py](pso_evolve.py)
-* [ann_evolve.py](ann_evolve.py)
-* [fsm_evolve.py](fsm_evolve.py)
-* [hmm_evolve.py](hmm_evolve.py)
+* `looker_evolve.py`
+* `pso_evolve.py`
+* `ann_evolve.py`
+* `fsm_evolve.py`
+* `hmm_evolve.py`
 
 
 See below for usage instructions.
