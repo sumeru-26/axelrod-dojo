@@ -1,7 +1,10 @@
 # Axelrod Evolvers
 
+
+
 This repository contains reinforcement learning training code for the following
 strategy types:
+
 * Lookup tables (LookerUp)
 * Particle Swarm algorithms (PSOGambler), a stochastic version of LookerUp
 * Feed Forward Neural Network (EvolvedANN)
@@ -10,9 +13,25 @@ strategy types:
 
 Model training is by [evolutionary algorithms](https://en.wikipedia.org/wiki/Evolutionary_algorithm)
  or [particle swarm algorithms](https://en.wikipedia.org/wiki/Particle_swarm_optimization).
-There is another repository in the [Axerlod project](https://github.com/Axelrod-Python/Axelrod)
+There is another repository in the [Axelrod project](https://github.com/Axelrod-Python/Axelrod)
 that trains Neural Networks with gradient descent (using tensorflow)
-that will likely be incorporated here. In this repository there are scripts
+that will likely be incorporated here.
+
+You can use this as a library.
+
+## Development
+
+Install a development version of the library:
+
+    $ python setup.py develop
+
+Run the test:
+
+    $ python -m unittest discover tests
+
+## Scripts
+
+In this repository there are scripts
 for each strategy type with a similar interface:
 
 * [looker_evolve.py](looker_evolve.py)
@@ -20,6 +39,7 @@ for each strategy type with a similar interface:
 * [ann_evolve.py](ann_evolve.py)
 * [fsm_evolve.py](fsm_evolve.py)
 * [hmm_evolve.py](hmm_evolve.py)
+
 
 See below for usage instructions.
 

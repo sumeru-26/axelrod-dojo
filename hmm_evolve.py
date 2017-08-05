@@ -35,12 +35,11 @@ from random import randrange, choice
 from docopt import docopt
 import numpy as np
 
-from axelrod import Actions, flip_action
+from axelrod import Action
 from axelrod.strategies.hmm import HMMPlayer
+from axelrod_dojo import Params, Population, prepare_objective
 
-from evolve_utils import Params, Population, prepare_objective
-
-C, D = Actions.C, Actions.D
+C, D = Action.C, Action.D
 
 
 def copy_lists(rows):
@@ -145,7 +144,7 @@ class HMMParams(Params):
         self.emission_probabilities = mutate_row(
             self.emission_probabilities, self.mutation_rate)
         if random.random() < self.mutation_rate / 10:
-            self.initial_action = flip_action(self.initial_action)
+            self.initial_action = self.initial_action.flip()
         if random.random() < self.mutation_rate / (10 * self.num_states):
             self.initial_state = randrange(self.num_states)
         # Change node size?

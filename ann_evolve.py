@@ -33,13 +33,12 @@ Options:
 import random
 
 from docopt import docopt
-import numpy as np
 
-from axelrod import Actions
+from axelrod import Action
 from axelrod.strategies.ann import ANN
-from evolve_utils import Params, Population, prepare_objective
+from axelrod_dojo import Params, Population, prepare_objective
 
-C, D = Actions.C, Actions.D
+C, D = Action.C, Action.D
 
 
 ## Todo: mutation decay

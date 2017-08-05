@@ -1,11 +1,11 @@
-import csv
 from functools import partial
 from itertools import repeat
 from multiprocessing import Pool
 from operator import itemgetter
-import os
 from random import randrange
 from statistics import mean, pstdev
+import csv
+import os
 
 import axelrod as axl
 
@@ -21,6 +21,9 @@ class Outputer(object):
         self.writer.writerow(row)
         self.output.flush()
         os.fsync(self.output.fileno())
+
+    def close(self):
+        self.output.close()
 
 
 ## Objective functions for optimization
@@ -89,6 +92,7 @@ def objective_moran_win(me, other, turns, noise, repetitions, N=5):
     scores_for_this_opponent = []
 
     for _ in range(repetitions):
+        mp.reset()
         mp.play()
         if mp.winning_strategy_name == str(me):
             scores_for_this_opponent.append(1)
@@ -127,6 +131,9 @@ class Params(object):
 
 
 def score_params(params, objective, opponents):
+    """
+    Return the overall mean score of a Params instance.
+    """
     scores_for_all_opponents = []
     player = params.player()
 
@@ -234,7 +241,7 @@ class Population(object):
     def run(self, generations):
         for _ in range(generations):
             next(self)
-        pass
+        self.outputer.close()
 
 
 def load_params(params_class, filename, num):
@@ -279,4 +286,3 @@ def score_for(strategy_factory, objective, args=None, opponents=None):
     # Calculate the average for all opponents
     overall_mean_score = mean(scores_for_all_opponents)
     return overall_mean_score
-

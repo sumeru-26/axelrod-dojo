@@ -31,12 +31,11 @@ from random import choice
 from docopt import docopt
 import numpy as np
 
-from axelrod import Actions, flip_action
+from axelrod import Action
 from axelrod.strategies.lookerup import LookerUp, create_lookup_table_keys
+from axelrod_dojo import Params, Population, prepare_objective
 
-from evolve_utils import Params, Population, prepare_objective
-
-C, D = Actions.C, Actions.D
+C, D = Action.C, Action.D
 
 
 class LookerUpParams(Params):
@@ -92,7 +91,7 @@ class LookerUpParams(Params):
         # Flip each value with a probability proportional to the mutation rate
         for i, (history, move) in enumerate(table.items()):
             if randoms[i] < mutation_rate:
-                table[history] = flip_action(move)
+                table[history] = move.flip()
         return table
 
     def mutate(self):
@@ -101,7 +100,7 @@ class LookerUpParams(Params):
         for i in range(len(self.initial_actions)):
             r = random.random()
             if r < 0.05:
-                self.initial_actions[i] = flip_action(self.initial_actions[i])
+                self.initial_actions[i] = self.initial_actions[i].flip()
 
     @staticmethod
     def crossover_tables(table1, table2):

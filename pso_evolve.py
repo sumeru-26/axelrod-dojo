@@ -34,7 +34,7 @@ import pyswarm
 from axelrod import Gambler
 from axelrod.strategies.lookerup import (
     create_lookup_table_keys, Plays)
-from evolve_utils import prepare_objective, score_for
+from axelrod_dojo import prepare_objective, score_for
 
 
 def optimizepso(param_args, objective, opponents=None):
