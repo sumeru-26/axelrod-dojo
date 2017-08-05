@@ -1,5 +1,10 @@
-# Axelrod Evolvers
+[![Coverage
+Status](https://coveralls.io/repos/github/Axelrod-Python/axelrod-dojo/badge.svg?branch=packaging)](https://coveralls.io/github/Axelrod-Python/axelrod-dojo?branch=packaging)
 
+[![Build
+Status](https://travis-ci.org/Axelrod-Python/axelrod-dojo.svg?branch=master)](https://travis-ci.org/Axelrod-Python/axelrod-dojo)
+
+# Axelrod Evolvers
 
 
 This repository contains reinforcement learning training code for the following
