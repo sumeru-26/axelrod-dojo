@@ -7,6 +7,7 @@ from statistics import mean, pstdev
 import csv
 import os
 
+import numpy as np
 import axelrod as axl
 
 
@@ -130,7 +131,7 @@ class Params(object):
         pass
 
 
-def score_params(params, objective, opponents):
+def score_params(params, objective, opponents, weights=None):
     """
     Return the overall mean score of a Params instance.
     """
@@ -144,14 +145,15 @@ def score_params(params, objective, opponents):
         mean_vs_opponent = mean(scores_for_this_opponent)
         scores_for_all_opponents.append(mean_vs_opponent)
 
-    overall_mean_score = mean(scores_for_all_opponents)
+    overall_mean_score = np.average(scores_for_all_opponents,
+                                    weights=weights)
     return overall_mean_score
 
 
 class Population(object):
     """Population class that implements the evolutionary algorithm."""
     def __init__(self, params_class, params_args, size, objective, output_filename,
-                 bottleneck=None, opponents=None, processes=1):
+                 bottleneck=None, opponents=None, processes=1, weights=None):
         self.params_class = params_class
         self.bottleneck = bottleneck
         self.pool = Pool(processes=processes)
@@ -169,12 +171,14 @@ class Population(object):
         self.generation = 0
         self.params_args = params_args
         self.population = [params_class(*params_args) for _ in range(self.size)]
+        self.weights = weights
 
     def score_all(self):
         starmap_params = zip(
             self.population,
             repeat(self.objective),
-            repeat(self.opponents))
+            repeat(self.opponents),
+            repeat(self.weights))
         results = self.pool.starmap(score_params, starmap_params)
         return results
 
