@@ -1,6 +1,6 @@
 from functools import partial
 from itertools import repeat
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 from operator import itemgetter
 from random import randrange
 from statistics import mean, pstdev
@@ -168,6 +168,8 @@ class Population(object):
                  bottleneck=None, opponents=None, processes=1, weights=None):
         self.params_class = params_class
         self.bottleneck = bottleneck
+        if processes == 0:
+            processes = cpu_count()
         self.pool = Pool(processes=processes)
         self.outputer = Outputer(output_filename, mode='a')
         self.size = size
