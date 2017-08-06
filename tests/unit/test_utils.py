@@ -193,6 +193,29 @@ class TestScoreParams(unittest.TestCase):
         expected_score = 2.0949
         self.assertEqual(score, expected_score)
 
+    def test_with_init_kwargs(self):
+        axl.seed(0)
+        opponents = [axl.Random]
+        opponent_init_kwargs = [{"p": 0}]  # Creating a defector
+        objective = utils.prepare_objective()
+        params = DummyParams()
+        score = utils.score_params(params,
+                                   objective=objective,
+                                   opponent_init_kwargs=opponent_init_kwargs,
+                                   opponents=opponents)
+        expected_score = 0
+        self.assertEqual(score, expected_score)
+
+        opponent_init_kwargs = [{"p": 1}]  # Creating a cooperator
+        objective = utils.prepare_objective()
+        params = DummyParams()
+        score = utils.score_params(params,
+                                   objective=objective,
+                                   opponent_init_kwargs=opponent_init_kwargs,
+                                   opponents=opponents)
+        expected_score = 3.0
+        self.assertEqual(score, expected_score)
+
     def test_score_with_weights(self):
         axl.seed(0)
         opponents = axl.demo_strategies

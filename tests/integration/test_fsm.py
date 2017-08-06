@@ -17,7 +17,7 @@ class TestFSMPopulation(unittest.TestCase):
         repetitions = 5
         num_states = 2
         mutation_rate = .1
-        opponents = axl.demo_strategies
+        opponents = [s() for s in axl.demo_strategies]
         size = 10
 
         objective = dojo.prepare_objective(name=name,
@@ -68,7 +68,7 @@ class TestFSMPopulation(unittest.TestCase):
         repetitions = 5
         num_states = 2
         mutation_rate = .1
-        opponents = axl.demo_strategies
+        opponents = [s() for s in axl.demo_strategies]
         size = 10
 
         objective = dojo.prepare_objective(name=name,

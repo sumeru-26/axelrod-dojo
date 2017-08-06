@@ -138,16 +138,21 @@ class Params(object):
         pass
 
 
-def score_params(params, objective, opponents, weights=None):
+def score_params(params, objective, opponents,
+                 opponent_init_kwargs=None,
+                 weights=None):
     """
     Return the overall mean score of a Params instance.
     """
     scores_for_all_opponents = []
     player = params.player()
 
-    for opponent_class in opponents:
+    if opponent_init_kwargs is None:
+        opponent_init_kwargs = [{} for _ in opponents]
+
+    for opponent_class, init_kwargs in zip(opponents, opponent_init_kwargs):
         player.reset()
-        opponent = opponent_class()
+        opponent = opponent_class(**init_kwargs)
         scores_for_this_opponent = objective(player, opponent)
         mean_vs_opponent = mean(scores_for_this_opponent)
         scores_for_all_opponents.append(mean_vs_opponent)
@@ -173,8 +178,10 @@ class Population(object):
             self.bottleneck = bottleneck
         if opponents is None:
             self.opponents = axl.short_run_time_strategies
+            self.opponent_init_kwargs = None
         else:
-            self.opponents = opponents
+            self.opponents = [p.__class__ for p in opponents]
+            self.opponent_init_kwargs = [p.init_kwargs for p in opponents]
         self.generation = 0
         self.params_args = params_args
         self.population = [params_class(*params_args) for _ in range(self.size)]
@@ -185,6 +192,7 @@ class Population(object):
             self.population,
             repeat(self.objective),
             repeat(self.opponents),
+            repeat(self.opponent_init_kwargs),
             repeat(self.weights))
         results = self.pool.starmap(score_params, starmap_params)
         return results
