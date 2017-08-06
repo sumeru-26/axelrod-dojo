@@ -17,7 +17,7 @@ class TestFSMPopulation(unittest.TestCase):
         repetitions = 5
         num_states = 2
         mutation_rate = .1
-        opponents = axl.demo_strategies
+        opponents = [s() for s in axl.demo_strategies]
         size = 10
 
         objective = dojo.prepare_objective(name=name,
@@ -68,7 +68,7 @@ class TestFSMPopulation(unittest.TestCase):
         repetitions = 5
         num_states = 2
         mutation_rate = .1
-        opponents = axl.demo_strategies
+        opponents = [s() for s in axl.demo_strategies]
         size = 10
 
         objective = dojo.prepare_objective(name=name,
@@ -112,3 +112,38 @@ class TestFSMPopulation(unittest.TestCase):
                 self.assertIsInstance(parameters, dojo.FSMParams)
 
             self.assertEqual(best[0].__repr__(), best_params)
+
+    def test_score_with_particular_players(self):
+        """
+        These are players that are known to be difficult to pickle
+        """
+        name = "score"
+        turns = 10
+        noise = 0
+        repetitions = 5
+        num_states = 2
+        mutation_rate = .1
+        opponents = [axl.ThueMorse(),
+                     axl.MetaHunter(),
+                     axl.BackStabber(),
+                     axl.Alexei()]
+        size = 10
+
+        objective = dojo.prepare_objective(name=name,
+                                           turns=turns,
+                                           noise=noise,
+                                           repetitions=repetitions)
+
+        population = dojo.Population(params_class=dojo.FSMParams,
+                                     params_args=(num_states, mutation_rate),
+                                     size=size,
+                                     objective=objective,
+                                     output_filename=self.temporary_file.name,
+                                     opponents=opponents,
+                                     bottleneck=2,
+                                     processes=0)
+
+        generations = 4
+        axl.seed(0)
+        population.run(generations)
+        self.assertEqual(population.generation, 4)

@@ -1,6 +1,7 @@
+from collections import namedtuple
 from functools import partial
 from itertools import repeat
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 from operator import itemgetter
 from random import randrange
 from statistics import mean, pstdev
@@ -137,17 +138,20 @@ class Params(object):
     def crossover(self, other):
         pass
 
+PlayerInfo = namedtuple('PlayerInfo', ['strategy', 'init_kwargs'])
 
-def score_params(params, objective, opponents, weights=None):
+def score_params(params, objective,
+                 opponents_information,
+                 weights=None):
     """
     Return the overall mean score of a Params instance.
     """
     scores_for_all_opponents = []
     player = params.player()
 
-    for opponent_class in opponents:
+    for strategy, init_kwargs in opponents_information:
         player.reset()
-        opponent = opponent_class()
+        opponent = strategy(**init_kwargs)
         scores_for_this_opponent = objective(player, opponent)
         mean_vs_opponent = mean(scores_for_this_opponent)
         scores_for_all_opponents.append(mean_vs_opponent)
@@ -163,6 +167,8 @@ class Population(object):
                  bottleneck=None, opponents=None, processes=1, weights=None):
         self.params_class = params_class
         self.bottleneck = bottleneck
+        if processes == 0:
+            processes = cpu_count()
         self.pool = Pool(processes=processes)
         self.outputer = Outputer(output_filename, mode='a')
         self.size = size
@@ -172,9 +178,11 @@ class Population(object):
         else:
             self.bottleneck = bottleneck
         if opponents is None:
-            self.opponents = axl.short_run_time_strategies
+            self.opponents_information = [
+                    PlayerInfo(s, {}) for s in axl.short_run_time_strategies]
         else:
-            self.opponents = opponents
+            self.opponents_information = [
+                    PlayerInfo(p.__class__, p.init_kwargs) for p in opponents]
         self.generation = 0
         self.params_args = params_args
         self.population = [params_class(*params_args) for _ in range(self.size)]
@@ -184,7 +192,7 @@ class Population(object):
         starmap_params = zip(
             self.population,
             repeat(self.objective),
-            repeat(self.opponents),
+            repeat(self.opponents_information),
             repeat(self.weights))
         results = self.pool.starmap(score_params, starmap_params)
         return results
