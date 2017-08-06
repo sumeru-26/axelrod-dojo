@@ -180,50 +180,48 @@ class DummyParams(utils.Params):
     def player(self):
         return axl.Cooperator()
 
-
 class TestScoreParams(unittest.TestCase):
     def test_score(self):
         axl.seed(0)
-        opponents = axl.demo_strategies
+        opponents_information = [utils.PlayerInfo(s, {})
+                                 for s in axl.demo_strategies]
         objective = utils.prepare_objective()
         params = DummyParams()
         score = utils.score_params(params,
                                    objective=objective,
-                                   opponents=opponents)
+                                   opponents_information=opponents_information)
         expected_score = 2.0949
         self.assertEqual(score, expected_score)
 
     def test_with_init_kwargs(self):
         axl.seed(0)
-        opponents = [axl.Random]
-        opponent_init_kwargs = [{"p": 0}]  # Creating a defector
+        opponents_information = [utils.PlayerInfo(axl.Random, {"p": 0})]
         objective = utils.prepare_objective()
         params = DummyParams()
         score = utils.score_params(params,
                                    objective=objective,
-                                   opponent_init_kwargs=opponent_init_kwargs,
-                                   opponents=opponents)
+                                   opponents_information=opponents_information)
         expected_score = 0
         self.assertEqual(score, expected_score)
 
-        opponent_init_kwargs = [{"p": 1}]  # Creating a cooperator
+        opponents_information = [utils.PlayerInfo(axl.Random, {"p": 1})]
         objective = utils.prepare_objective()
         params = DummyParams()
         score = utils.score_params(params,
                                    objective=objective,
-                                   opponent_init_kwargs=opponent_init_kwargs,
-                                   opponents=opponents)
+                                   opponents_information=opponents_information)
         expected_score = 3.0
         self.assertEqual(score, expected_score)
 
     def test_score_with_weights(self):
         axl.seed(0)
-        opponents = axl.demo_strategies
+        opponents_information = [utils.PlayerInfo(s, {})
+                                 for s in axl.demo_strategies]
         objective = utils.prepare_objective()
         params = DummyParams()
         score = utils.score_params(params,
                                    objective=objective,
-                                   opponents=opponents,
+                                   opponents_information=opponents_information,
                                    # All weight on Coop
                                    weights=[1, 0, 0, 0, 0])
         expected_score = 3
@@ -231,7 +229,7 @@ class TestScoreParams(unittest.TestCase):
 
         score = utils.score_params(params,
                                    objective=objective,
-                                   opponents=opponents,
+                                   opponents_information=opponents_information,
                                    # Shared weight between Coop and Def
                                    weights=[2, 2, 0, 0, 0])
         expected_score = 1.5
@@ -239,7 +237,7 @@ class TestScoreParams(unittest.TestCase):
 
         score = utils.score_params(params,
                                    objective=objective,
-                                   opponents=opponents,
+                                   opponents_information=opponents_information,
                                    # Shared weight between Coop and Def
                                    weights=[2, -.5, 0, 0, 0])
         expected_score = 4.0
