@@ -142,12 +142,18 @@ PlayerInfo = namedtuple('PlayerInfo', ['strategy', 'init_kwargs'])
 
 def score_params(params, objective,
                  opponents_information,
-                 weights=None):
+                 weights=None, sample_count=None):
     """
     Return the overall mean score of a Params instance.
     """
     scores_for_all_opponents = []
     player = params.player()
+
+    if sample_count is not None:
+        indices = np.random.choice(len(opponents_information), sample_count)
+        opponents_information = [opponents_information[i] for i in indices]
+        if weights is not None:
+            weights = [weights[i] for i in indices]
 
     for strategy, init_kwargs in opponents_information:
         player.reset()
@@ -164,7 +170,8 @@ def score_params(params, objective,
 class Population(object):
     """Population class that implements the evolutionary algorithm."""
     def __init__(self, params_class, params_args, size, objective, output_filename,
-                 bottleneck=None, opponents=None, processes=1, weights=None):
+                 bottleneck=None, opponents=None, processes=1, weights=None,
+                 sample_count=None):
         self.params_class = params_class
         self.bottleneck = bottleneck
         if processes == 0:
@@ -187,13 +194,15 @@ class Population(object):
         self.params_args = params_args
         self.population = [params_class(*params_args) for _ in range(self.size)]
         self.weights = weights
+        self.sample_count = sample_count
 
     def score_all(self):
         starmap_params = zip(
             self.population,
             repeat(self.objective),
             repeat(self.opponents_information),
-            repeat(self.weights))
+            repeat(self.weights),
+            repeat(self.sample_count))
         results = self.pool.starmap(score_params, starmap_params)
         return results
 
