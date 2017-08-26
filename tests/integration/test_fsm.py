@@ -59,7 +59,20 @@ class TestFSMPopulation(unittest.TestCase):
             for parameters in best:
                 self.assertIsInstance(parameters, dojo.FSMParams)
 
-            self.assertEqual(best[0].__repr__(), best_params)
+        # Test that can use these loaded params in a new algorithm instance
+        population = dojo.Population(params_class=dojo.FSMParams,
+                                     params_args=(num_states, mutation_rate),
+                                     size=size,
+                                     objective=objective,
+                                     output_filename=self.temporary_file.name,
+                                     opponents=opponents,
+                                     population=best,
+                                     bottleneck=2,
+                                     processes=1)
+        generations = 4
+        axl.seed(0)
+        population.run(generations)
+        self.assertEqual(population.generation, 4)
 
     def test_score_with_weights(self):
         name = "score"

@@ -171,7 +171,7 @@ class Population(object):
     """Population class that implements the evolutionary algorithm."""
     def __init__(self, params_class, params_args, size, objective, output_filename,
                  bottleneck=None, opponents=None, processes=1, weights=None,
-                 sample_count=None):
+                 sample_count=None, population=None):
         self.params_class = params_class
         self.bottleneck = bottleneck
         if processes == 0:
@@ -192,7 +192,12 @@ class Population(object):
                     PlayerInfo(p.__class__, p.init_kwargs) for p in opponents]
         self.generation = 0
         self.params_args = params_args
-        self.population = [params_class(*params_args) for _ in range(self.size)]
+
+        if population is not None:
+            self.population = population
+        else:
+            self.population = [params_class(*params_args) for _ in range(self.size)]
+
         self.weights = weights
         self.sample_count = sample_count
 
