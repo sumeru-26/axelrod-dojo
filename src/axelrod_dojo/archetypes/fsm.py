@@ -1,11 +1,12 @@
 import random
+import itertools
 from random import randrange, choice
 
 import numpy as np
 from axelrod import Action, FSMPlayer
 from axelrod.action import UnknownActionError
 
-from axelrod_dojo.utils import Params, Population, prepare_objective
+from axelrod_dojo.utils import Params
 
 C, D = Action.C, Action.D
 
@@ -32,7 +33,6 @@ class FSMParams(Params):
             self.rows = copy_lists(rows)
         self.initial_state = initial_state
         self.initial_action = initial_action
-
 
     def player(self):
         player = self.PlayerClass(self.rows, self.initial_state,
@@ -137,3 +137,42 @@ class FSMParams(Params):
             rows.append(row)
         num_states = len(rows) // 2
         return cls(num_states, 0.1, rows, initial_state, initial_action)
+
+    def receive_vector(self, vector):
+        """Receives a vector and creates an instance attribute called
+        vector."""
+        self.vector = vector
+
+    def vector_to_instance(self):
+        """Turns the attribute vector in to a FSM player instance.
+         
+        The vector has three parts. The first is used to define the next state 
+        (for each of the player's states - for each opponents action).
+         
+        The second part is the player's next moves (for each state - for 
+        each opponent's actions).
+        
+        Finally, a probability to determine the player's first move."""
+
+        num_states = int((len(self.vector) - 1) / 4)
+        state_scale = self.vector[:num_states * 2]
+        next_states = [int(s * (num_states - 1)) for s in state_scale]
+        actions = self.vector[num_states * 2: -1]
+        starting_move = C if round(self.vector[-1]) == 0 else D
+
+        fsm = []
+        for i, (initial_state, action) in enumerate(
+                itertools.product(range(num_states), [C, D])):
+            next_action = C if round(actions[i]) == 0 else D
+            fsm.append([initial_state, action, next_states[i], next_action])
+
+        return FSMPlayer(fsm, initial_action=starting_move)
+
+    def create_vector_bounds(self):
+        """Creates the bounds for the decision variables."""
+        size = len(self.rows) * 2 + 1
+
+        lb = [0] * size
+        ub = [1] * size
+
+        return lb, ub

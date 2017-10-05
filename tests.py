@@ -7,6 +7,7 @@ from fsm_evolve import FSMParams
 from lookup_evolve import LookerUpParams
 from evolve_utils import load_params
 
+
 class TestRepr(unittest.TestCase):
 
     def test_repr_load(self):

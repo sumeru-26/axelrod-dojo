@@ -7,6 +7,7 @@ import axelrod_dojo as dojo
 
 C, D = axl.Action.C, axl.Action.D
 
+
 class TestFSMPopulation(unittest.TestCase):
     temporary_file = tempfile.NamedTemporaryFile()
 
@@ -177,7 +178,6 @@ class TestFSMPopulation(unittest.TestCase):
                 self.assertIsInstance(parameters, dojo.FSMParams)
 
             self.assertEqual(best[0].__repr__(), best_params)
-
 
     def test_score_with_sample_count_and_weights(self):
         name = "score"

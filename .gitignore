@@ -58,3 +58,6 @@ target/
 data/
 
 *.mypy*
+
+# pycharm
+.idea/

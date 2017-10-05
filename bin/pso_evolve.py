@@ -7,7 +7,7 @@ Based on Martin Jones @mojones original LookerUp code
 
 Usage:
     pso_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
-    [--processes PROCESSORS] [--output OUTPUT_FILE] [--objective OBJECTIVE]
+    [--output OUTPUT_FILE] [--objective OBJECTIVE]
     [--repetitions REPETITIONS] [--turns TURNS] [--noise NOISE]
     [--nmoran NMORAN]
     [--plays PLAYS] [--op_plays OP_PLAYS] [--op_start_plays OP_START_PLAYS]
@@ -16,7 +16,6 @@ Options:
     -h --help                   Show help
     --generations GENERATIONS   Generations to run the EA [default: 100]
     --population POPULATION     Starting population size  [default: 40]
-    --processes PROCESSES       Number of processes to use [default: 1]
     --output OUTPUT_FILE        File to write data to [default: pso_tables.csv]
     --objective OBJECTIVE       Objective function [default: score]
     --repetitions REPETITIONS   Repetitions in objective [default: 100]
@@ -29,28 +28,16 @@ Options:
 """
 
 from docopt import docopt
-import pyswarm
 
-from axelrod import Gambler
-from axelrod.strategies.lookerup import (
-    create_lookup_table_keys, Plays)
-from axelrod_dojo import prepare_objective, score_for
+from axelrod_dojo.archetypes.gambler import GamblerParams
+from axelrod_dojo.algorithms.particle_swarm_optimization import PSO
 
 
-def optimizepso(param_args, objective, opponents=None):
-    def f(pattern):
-        self_plays, op_plays, op_openings = param_args
-        params = Plays(self_plays=self_plays, op_plays=op_plays,
-                       op_openings=op_openings)
-        return -score_for(Gambler, objective,
-                          args=[None, None, pattern, params],
-                          opponents=opponents)
-    return f
+from axelrod_dojo.utils import prepare_objective
 
 if __name__ == "__main__":
     arguments = docopt(__doc__, version='PSO Evolve 0.3')
     print(arguments)
-    processes = int(arguments['--processes'])
 
     # Population Args
     population = int(arguments['--population'])
@@ -71,22 +58,10 @@ if __name__ == "__main__":
 
     objective = prepare_objective(name, turns, noise, repetitions, nmoran)
 
-    size = len(create_lookup_table_keys(plays, op_plays, op_start_plays))
-    lb = [0] * size
-    ub = [1] * size
+    pso = PSO(GamblerParams, param_args, objective=objective,
+              population=population, generations=generations)
 
-    optimizer = optimizepso(param_args, objective)
+    xopt, fopt = pso.swarm()
 
-    # There is a multiprocessing version (0.7) of pyswarm available at
-    # https://github.com/tisimst/pyswarm, just pass processes=X
-    # Pip installs version 0.6
-    if pyswarm.__version__ == "0.7":
-        xopt, fopt = pyswarm.pso(
-            optimizer, lb, ub, swarmsize=population, maxiter=generations,
-            debug=True, phip=0.8, phig=0.8, omega=0.8, processes=processes)
-    else:
-        xopt, fopt = pyswarm.pso(
-            optimizer, lb, ub, swarmsize=population, maxiter=generations,
-            debug=True, phip=0.8, phig=0.8, omega=0.8)
     print(xopt)
     print(fopt)
