@@ -32,7 +32,7 @@ class TestFSMPopulation(unittest.TestCase):
                                      output_filename=self.temporary_file.name,
                                      opponents=opponents,
                                      bottleneck=2,
-                                     mutation_rate = .1,
+                                     mutation_rate = .01,
                                      processes=1)
 
         generations = 4
@@ -69,7 +69,7 @@ class TestFSMPopulation(unittest.TestCase):
                                      opponents=opponents,
                                      population=best,
                                      bottleneck=2,
-                                     mutation_rate = .1,
+                                     mutation_rate = .01,
                                      processes=1)
         generations = 4
         axl.seed(0)
@@ -98,7 +98,7 @@ class TestFSMPopulation(unittest.TestCase):
                                      opponents=opponents,
                                      weights=[5, 1, 1, 1, 1],
                                      bottleneck=2,
-                                     mutation_rate = .1,
+                                     mutation_rate = .01,
                                      processes=1)
 
         generations = 4
@@ -150,7 +150,7 @@ class TestFSMPopulation(unittest.TestCase):
                                      opponents=opponents,
                                      sample_count=2,  # Randomly sample 2 opponents at each step
                                      bottleneck=2,
-                                     mutation_rate = .1,
+                                     mutation_rate = .01,
                                      processes=1)
 
         generations = 4
@@ -203,7 +203,7 @@ class TestFSMPopulation(unittest.TestCase):
                                      sample_count=2,  # Randomly sample 2 opponents at each step
                                      weights=[5, 1, 1, 1, 1],
                                      bottleneck=2,
-                                     mutation_rate = .1,
+                                     mutation_rate = .01,
                                      processes=1)
 
         generations = 4
@@ -260,7 +260,7 @@ class TestFSMPopulation(unittest.TestCase):
                                      output_filename=self.temporary_file.name,
                                      opponents=opponents,
                                      bottleneck=2,
-                                     mutation_rate = .1,
+                                     mutation_rate = .01,
                                      processes=0)
 
         generations = 4

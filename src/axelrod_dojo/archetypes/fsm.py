@@ -80,12 +80,12 @@ class FSMParams(Params):
 
     def mutate(self, mutation_rate):
         if mutation_rate is None:
-            mutation_rate = 1 / (2 * self.num_states)
+            mutation_rate = 1 / (20 * self.num_states)
 
         self.rows = self.mutate_rows(self.rows, mutation_rate)
-        if random.random() < mutation_rate / 10:
+        if random.random() < mutation_rate:
             self.initial_action = self.initial_action.flip()
-        if random.random() < mutation_rate / (10 * self.num_states):
+        if random.random() < mutation_rate / (self.num_states):
             self.initial_state = randrange(self.num_states)
         # Change node size?
 
