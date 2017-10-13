@@ -18,14 +18,10 @@ def copy_lists(rows):
 
 class FSMParams(Params):
 
-    def __init__(self, num_states, mutation_rate=None, rows=None,
+    def __init__(self, num_states, rows=None,
                  initial_state=0, initial_action=C):
         self.PlayerClass = FSMPlayer
         self.num_states = num_states
-        if mutation_rate is None:
-            self.mutation_rate = 1 / (2 * num_states)
-        else:
-            self.mutation_rate = mutation_rate
         if rows is None:
             self.randomize()
         else:
@@ -40,8 +36,8 @@ class FSMParams(Params):
         return player
 
     def copy(self):
-        return FSMParams(self.num_states, self.mutation_rate,
-                         self.rows, self.initial_state, self.initial_action)
+        return FSMParams(self.num_states, self.rows, 
+                         self.initial_state, self.initial_action)
 
     @staticmethod
     def random_params(num_states):
@@ -82,11 +78,14 @@ class FSMParams(Params):
                     row[1] = n1
         return rows
 
-    def mutate(self):
-        self.rows = self.mutate_rows(self.rows, self.mutation_rate)
-        if random.random() < self.mutation_rate / 10:
+    def mutate(self, mutation_rate):
+        if mutation_rate is None:
+            mutation_rate = 1 / (2 * self.num_states)
+
+        self.rows = self.mutate_rows(self.rows, mutation_rate)
+        if random.random() < mutation_rate / 10:
             self.initial_action = self.initial_action.flip()
-        if random.random() < self.mutation_rate / (10 * self.num_states):
+        if random.random() < mutation_rate / (10 * self.num_states):
             self.initial_state = randrange(self.num_states)
         # Change node size?
 
@@ -101,7 +100,7 @@ class FSMParams(Params):
     def crossover(self, other):
         # Assuming that the number of states is the same
         new_rows = self.crossover_rows(self.rows, other.rows)
-        return FSMParams(self.num_states, self.mutation_rate, new_rows,
+        return FSMParams(self.num_states, new_rows,
                          self.initial_state, self.initial_action)
 
     @staticmethod
@@ -136,7 +135,7 @@ class FSMParams(Params):
 
             rows.append(row)
         num_states = len(rows) // 2
-        return cls(num_states, 0.1, rows, initial_state, initial_action)
+        return cls(num_states, rows, initial_state, initial_action)
 
     def receive_vector(self, vector):
         """Receives a vector and creates an instance attribute called

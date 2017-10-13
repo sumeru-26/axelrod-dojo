@@ -12,10 +12,13 @@ from axelrod_dojo.utils import Outputer, PlayerInfo, score_params
 class Population(object):
     """Population class that implements the evolutionary algorithm."""
     def __init__(self, params_class, params_args, size, objective, output_filename,
-                 bottleneck=None, opponents=None, processes=1, weights=None,
+                 bottleneck=None, mutation_rate=None, opponents=None, 
+                 processes=1, weights=None,
                  sample_count=None, population=None):
         self.params_class = params_class
         self.bottleneck = bottleneck
+        self.mutation_rate = mutation_rate
+
         if processes == 0:
             processes = cpu_count()
         self.pool = Pool(processes=processes)
@@ -92,7 +95,7 @@ class Population(object):
         # Add mutants of the best players
         best_mutants = [p.copy() for p in self.population]
         for p in best_mutants:
-            p.mutate()
+            p.mutate(self.mutation_rate)
             self.population.append(p)
         # Add random variants
         random_params = [self.params_class(*self.params_args)
@@ -104,7 +107,7 @@ class Population(object):
         params_to_modify = self.crossover(params_to_modify, size_left)
         # Mutate
         for p in params_to_modify:
-            p.mutate()
+            p.mutate(self.mutation_rate)
         self.population += params_to_modify
 
     def __iter__(self):

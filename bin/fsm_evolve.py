@@ -50,9 +50,10 @@ if __name__ == '__main__':
 
     # FSM
     num_states = int(arguments['--states'])
-    param_args = [num_states, mutation_rate]
+    param_args = [num_states]
 
     objective = prepare_objective(name, turns, noise, repetitions, nmoran)
     population = Population(FSMParams, param_args, population, objective,
-                            output_filename, bottleneck, processes=processes)
+                            output_filename, bottleneck, mutation_rate, 
+                            processes=processes)
     population.run(generations)
