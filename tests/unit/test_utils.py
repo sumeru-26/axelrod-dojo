@@ -162,7 +162,7 @@ class TestObjectiveMoran(unittest.TestCase):
 class TestBaseParametersClass(unittest.TestCase):
     def test_null_methods(self):
         parameters = utils.Params()
-        self.assertIsNone(parameters.mutate())
+        self.assertIsNone(parameters.mutate(mutation_rate=.1))
         self.assertIsNone(parameters.random())
         self.assertIsNone(parameters.__repr__())
         self.assertIsNone(parameters.from_repr())
