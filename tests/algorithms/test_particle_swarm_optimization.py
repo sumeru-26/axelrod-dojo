@@ -59,7 +59,9 @@ class TestPSO(unittest.TestCase):
         num_plays = 1
         num_op_plays = 1
         num_op_start_plays = 1
-        params_args = [num_plays, num_op_plays, num_op_start_plays]
+        params_kwargs = {"plays": num_plays,
+                         "op_plays": num_op_plays,
+                         "op_start_plays": num_op_start_plays}
         population = 10
         generations = 100
         opponents = [axl.Cooperator() for _ in range(5)]
@@ -69,7 +71,7 @@ class TestPSO(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        pso = PSO(GamblerParams, params_args, objective=objective, debug=False,
+        pso = PSO(GamblerParams, params_kwargs, objective=objective, debug=False,
                   opponents=opponents, population=population, generations=generations)
 
         axl.seed(0)
@@ -90,7 +92,7 @@ class TestPSO(unittest.TestCase):
         noise = 0
         repetitions = 5
         num_states = 4
-        params_args = [num_states]
+        params_kwargs = {"num_states": num_states}
         population = 10
         generations = 100
         opponents = [axl.Defector() for _ in range(5)]
@@ -100,7 +102,7 @@ class TestPSO(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        pso = PSO(FSMParams, params_args, objective=objective, debug=False,
+        pso = PSO(FSMParams, params_kwargs, objective=objective, debug=False,
                   opponents=opponents, population=population, generations=generations)
 
         axl.seed(0)

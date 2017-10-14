@@ -18,14 +18,12 @@ def copy_lists(rows):
 
 class FSMParams(Params):
 
-    def __init__(self, num_states, mutation_rate=None, rows=None,
-                 initial_state=0, initial_action=C):
+    def __init__(self, num_states, rows=None,
+                 initial_state=0, initial_action=C,
+                 mutation_probability=0):
         self.PlayerClass = FSMPlayer
         self.num_states = num_states
-        if mutation_rate is None:
-            self.mutation_rate = 1 / (2 * num_states)
-        else:
-            self.mutation_rate = mutation_rate
+        self.mutation_probability = mutation_probability
         if rows is None:
             self.randomize()
         else:
@@ -40,8 +38,8 @@ class FSMParams(Params):
         return player
 
     def copy(self):
-        return FSMParams(self.num_states, self.mutation_rate,
-                         self.rows, self.initial_state, self.initial_action)
+        return FSMParams(self.num_states, self.rows,
+                         self.initial_state, self.initial_action)
 
     @staticmethod
     def random_params(num_states):
@@ -64,11 +62,11 @@ class FSMParams(Params):
         self.initial_action = initial_action
 
     @staticmethod
-    def mutate_rows(rows, mutation_rate):
+    def mutate_rows(rows, mutation_probability):
         randoms = np.random.random(len(rows))
         # Flip each value with a probability proportional to the mutation rate
         for i, row in enumerate(rows):
-            if randoms[i] < mutation_rate:
+            if randoms[i] < mutation_probability:
                 row[3] = row[3].flip()
         # Swap Two Nodes?
         if random.random() < 0.5:
@@ -83,10 +81,10 @@ class FSMParams(Params):
         return rows
 
     def mutate(self):
-        self.rows = self.mutate_rows(self.rows, self.mutation_rate)
-        if random.random() < self.mutation_rate / 10:
+        self.rows = self.mutate_rows(self.rows, self.mutation_probability)
+        if random.random() < self.mutation_probability:
             self.initial_action = self.initial_action.flip()
-        if random.random() < self.mutation_rate / (10 * self.num_states):
+        if random.random() < self.mutation_probability / self.num_states:
             self.initial_state = randrange(self.num_states)
         # Change node size?
 
@@ -101,8 +99,11 @@ class FSMParams(Params):
     def crossover(self, other):
         # Assuming that the number of states is the same
         new_rows = self.crossover_rows(self.rows, other.rows)
-        return FSMParams(self.num_states, self.mutation_rate, new_rows,
-                         self.initial_state, self.initial_action)
+        return FSMParams(num_states=self.num_states, 
+                         mutation_probability=self.mutation_probability, 
+                         rows=new_rows,
+                         initial_state=self.initial_state, 
+                         initial_action=self.initial_action)
 
     @staticmethod
     def repr_rows(rows):
@@ -136,7 +137,7 @@ class FSMParams(Params):
 
             rows.append(row)
         num_states = len(rows) // 2
-        return cls(num_states, 0.1, rows, initial_state, initial_action)
+        return cls(num_states, rows, initial_state, initial_action)
 
     def receive_vector(self, vector):
         """Receives a vector and creates an instance attribute called
@@ -145,13 +146,13 @@ class FSMParams(Params):
 
     def vector_to_instance(self):
         """Turns the attribute vector in to a FSM player instance.
-         
+
         The vector has three parts. The first is used to define the next state 
         (for each of the player's states - for each opponents action).
-         
+
         The second part is the player's next moves (for each state - for 
         each opponent's actions).
-        
+
         Finally, a probability to determine the player's first move."""
 
         num_states = int((len(self.vector) - 1) / 4)

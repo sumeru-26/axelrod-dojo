@@ -14,7 +14,6 @@ class TestFSMParams(unittest.TestCase):
         fsm_params = FSMParams(num_states=num_states, rows=rows)
         self.assertEqual(fsm_params.PlayerClass, axl.FSMPlayer)
         self.assertEqual(fsm_params.num_states, num_states)
-        self.assertEqual(fsm_params.mutation_rate, 1 / (2 * num_states))
         self.assertEqual(fsm_params.rows, rows)
         self.assertEqual(fsm_params.initial_action, C)
         self.assertEqual(fsm_params.initial_state, 0)
@@ -48,8 +47,6 @@ class TestFSMParams(unittest.TestCase):
         # Have same attributes
         self.assertEqual(fsm_params.PlayerClass, copy_fsm_params.PlayerClass)
         self.assertEqual(fsm_params.num_states, copy_fsm_params.num_states)
-        self.assertEqual(fsm_params.mutation_rate,
-                         copy_fsm_params.mutation_rate)
         self.assertEqual(fsm_params.rows, copy_fsm_params.rows)
         self.assertEqual(fsm_params.initial_action,
                          copy_fsm_params.initial_action)
@@ -113,8 +110,6 @@ class TestFSMParams(unittest.TestCase):
 
         self.assertEqual(fsm_params.PlayerClass, fsm_params1.PlayerClass)
         self.assertEqual(fsm_params.num_states, fsm_params1.num_states)
-        self.assertEqual(fsm_params.mutation_rate,
-                         fsm_params1.mutation_rate)
         self.assertEqual(fsm_params.initial_action,
                          fsm_params1.initial_action)
         self.assertEqual(fsm_params.initial_state,

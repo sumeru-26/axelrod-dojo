@@ -140,7 +140,7 @@ if __name__ == '__main__':
 
     # Vars for the genetic algorithm
     population = int(arguments['--population'])
-    mutation_rate = float(arguments['--mu'])
+    mutation_probability = float(arguments['--mu'])
     generations = int(arguments['--generations'])
     bottleneck = int(arguments['--bottleneck'])
     output_filename = arguments['--output']
@@ -156,9 +156,13 @@ if __name__ == '__main__':
     num_features = int(arguments['--features'])
     num_hidden = int(arguments['--hidden'])
     mutation_distance = float(arguments['--mu_distance'])
-    param_args = [num_features, num_hidden, mutation_rate, mutation_distance]
+    param_kwargs = {"num_features": num_features, 
+                  "num_hidden": num_hidden, 
+                  "mutation_distance": mutation_distance}
 
     objective = prepare_objective(name, turns, noise, repetitions, nmoran)
-    population = Population(ANNParams, param_args, population, objective,
-                            output_filename, bottleneck, processes=processes)
+    population = Population(ANNParams, param_kwargs, population, objective,
+                            output_filename, bottleneck, 
+                            mutation_probability,
+                            processes=processes)
     population.run(generations)
