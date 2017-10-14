@@ -11,13 +11,12 @@ from axelrod_dojo.utils import Outputer, PlayerInfo, score_params
 
 class Population(object):
     """Population class that implements the evolutionary algorithm."""
-    def __init__(self, params_class, params_args, size, objective, output_filename,
-                 bottleneck=None, mutation_rate=None, opponents=None, 
+    def __init__(self, params_class, params_kwargs, size, objective, output_filename,
+                 bottleneck=None, mutation_probability=.1, opponents=None,
                  processes=1, weights=None,
                  sample_count=None, population=None):
         self.params_class = params_class
         self.bottleneck = bottleneck
-        self.mutation_rate = mutation_rate
 
         if processes == 0:
             processes = cpu_count()
@@ -36,12 +35,15 @@ class Population(object):
             self.opponents_information = [
                     PlayerInfo(p.__class__, p.init_kwargs) for p in opponents]
         self.generation = 0
-        self.params_args = params_args
+
+        self.params_kwargs = params_kwargs
+        self.params_kwargs["mutation_probability"] = mutation_probability
 
         if population is not None:
             self.population = population
         else:
-            self.population = [params_class(*params_args) for _ in range(self.size)]
+            self.population = [params_class(**params_kwargs)
+                               for _ in range(self.size)]
 
         self.weights = weights
         self.sample_count = sample_count
@@ -95,10 +97,10 @@ class Population(object):
         # Add mutants of the best players
         best_mutants = [p.copy() for p in self.population]
         for p in best_mutants:
-            p.mutate(self.mutation_rate)
+            p.mutate()
             self.population.append(p)
         # Add random variants
-        random_params = [self.params_class(*self.params_args)
+        random_params = [self.params_class(**self.params_kwargs)
                          for _ in range(self.bottleneck // 2)]
         params_to_modify = [params.copy() for params in self.population]
         params_to_modify += random_params
@@ -107,7 +109,7 @@ class Population(object):
         params_to_modify = self.crossover(params_to_modify, size_left)
         # Mutate
         for p in params_to_modify:
-            p.mutate(self.mutation_rate)
+            p.mutate()
         self.population += params_to_modify
 
     def __iter__(self):

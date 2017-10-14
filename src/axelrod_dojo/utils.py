@@ -110,7 +110,7 @@ def objective_moran_win(me, other, turns, noise, repetitions, N=5,
 
 class Params(object):
     """Abstract Base Class for Parameters Objects."""
-    def mutate(self, mutation_rate):
+    def mutate(self):
         pass
 
     def random(self):

@@ -26,13 +26,13 @@ class TestFSMPopulation(unittest.TestCase):
                                            repetitions=repetitions)
 
         population = dojo.Population(params_class=dojo.FSMParams,
-                                     params_args=(num_states, ),
+                                     params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
                                      output_filename=self.temporary_file.name,
                                      opponents=opponents,
                                      bottleneck=2,
-                                     mutation_rate = .01,
+                                     mutation_probability = .01,
                                      processes=1)
 
         generations = 4
@@ -62,14 +62,14 @@ class TestFSMPopulation(unittest.TestCase):
 
         # Test that can use these loaded params in a new algorithm instance
         population = dojo.Population(params_class=dojo.FSMParams,
-                                     params_args=(num_states, ),
+                                     params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
                                      output_filename=self.temporary_file.name,
                                      opponents=opponents,
                                      population=best,
                                      bottleneck=2,
-                                     mutation_rate = .01,
+                                     mutation_probability = .01,
                                      processes=1)
         generations = 4
         axl.seed(0)
@@ -91,14 +91,14 @@ class TestFSMPopulation(unittest.TestCase):
                                            repetitions=repetitions)
 
         population = dojo.Population(params_class=dojo.FSMParams,
-                                     params_args=(num_states,),
+                                     params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
                                      output_filename=self.temporary_file.name,
                                      opponents=opponents,
                                      weights=[5, 1, 1, 1, 1],
                                      bottleneck=2,
-                                     mutation_rate = .01,
+                                     mutation_probability = .01,
                                      processes=1)
 
         generations = 4
@@ -143,14 +143,14 @@ class TestFSMPopulation(unittest.TestCase):
                                            repetitions=repetitions)
 
         population = dojo.Population(params_class=dojo.FSMParams,
-                                     params_args=(num_states, ),
+                                     params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
                                      output_filename=self.temporary_file.name,
                                      opponents=opponents,
                                      sample_count=2,  # Randomly sample 2 opponents at each step
                                      bottleneck=2,
-                                     mutation_rate = .01,
+                                     mutation_probability = .01,
                                      processes=1)
 
         generations = 4
@@ -195,7 +195,7 @@ class TestFSMPopulation(unittest.TestCase):
                                            repetitions=repetitions)
 
         population = dojo.Population(params_class=dojo.FSMParams,
-                                     params_args=(num_states, ),
+                                     params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
                                      output_filename=self.temporary_file.name,
@@ -203,7 +203,7 @@ class TestFSMPopulation(unittest.TestCase):
                                      sample_count=2,  # Randomly sample 2 opponents at each step
                                      weights=[5, 1, 1, 1, 1],
                                      bottleneck=2,
-                                     mutation_rate = .01,
+                                     mutation_probability = .01,
                                      processes=1)
 
         generations = 4
@@ -254,13 +254,13 @@ class TestFSMPopulation(unittest.TestCase):
                                            repetitions=repetitions)
 
         population = dojo.Population(params_class=dojo.FSMParams,
-                                     params_args=(num_states, ),
+                                     params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
                                      output_filename=self.temporary_file.name,
                                      opponents=opponents,
                                      bottleneck=2,
-                                     mutation_rate = .01,
+                                     mutation_probability = .01,
                                      processes=0)
 
         generations = 4
