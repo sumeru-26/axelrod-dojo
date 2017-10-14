@@ -84,7 +84,7 @@ class FSMParams(Params):
         self.rows = self.mutate_rows(self.rows, self.mutation_probability)
         if random.random() < self.mutation_probability:
             self.initial_action = self.initial_action.flip()
-        if random.random() < self.mutation_probability * self.num_states:
+        if random.random() < self.mutation_probability:
             self.initial_state = randrange(self.num_states)
         # Change node size?
 
