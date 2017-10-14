@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     # Vars for the genetic algorithm
     population = int(arguments['--population'])
-    mutation_rate = float(arguments['--mu'])
+    mutation_probability = float(arguments['--mu'])
     generations = int(arguments['--generations'])
     bottleneck = int(arguments['--bottleneck'])
     output_filename = arguments['--output']
@@ -54,6 +54,6 @@ if __name__ == '__main__':
 
     objective = prepare_objective(name, turns, noise, repetitions, nmoran)
     population = Population(FSMParams, param_kwargs, population, objective,
-                            output_filename, bottleneck, mutation_rate,
+                            output_filename, bottleneck, mutation_probability,
                             processes=processes)
     population.run(generations)

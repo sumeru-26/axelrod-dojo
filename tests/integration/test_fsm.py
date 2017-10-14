@@ -11,6 +11,7 @@ C, D = axl.Action.C, axl.Action.D
 class TestFSMPopulation(unittest.TestCase):
     temporary_file = tempfile.NamedTemporaryFile()
 
+
     def test_score(self):
         name = "score"
         turns = 10
@@ -267,3 +268,35 @@ class TestFSMPopulation(unittest.TestCase):
         axl.seed(0)
         population.run(generations)
         self.assertEqual(population.generation, 4)
+
+    def test_population_init_with_given_rate(self):
+        name = "score"
+        turns = 10
+        noise = 0
+        repetitions = 5
+        num_states = 2
+        opponents = [s() for s in axl.demo_strategies]
+        size = 10
+
+        objective = dojo.prepare_objective(name=name,
+                                           turns=turns,
+                                           noise=noise,
+                                           repetitions=repetitions)
+
+        population = dojo.Population(params_class=dojo.FSMParams,
+                                     params_kwargs={"num_states": num_states,
+                                                    "mutation_probability": .5},
+                                     size=size,
+                                     objective=objective,
+                                     output_filename=self.temporary_file.name,
+                                     opponents=opponents,
+                                     bottleneck=2,
+                                     mutation_probability = .01,
+                                     processes=1)
+
+        for p in population.population:
+            self.assertEqual(p.mutation_probability, .5)
+        generations = 1
+        axl.seed(0)
+        population.run(generations)
+        self.assertEqual(population.generation, 1)

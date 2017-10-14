@@ -37,7 +37,8 @@ class Population(object):
         self.generation = 0
 
         self.params_kwargs = params_kwargs
-        self.params_kwargs["mutation_probability"] = mutation_probability
+        if "mutation_probability" not in self.params_kwargs:
+            self.params_kwargs["mutation_probability"] = mutation_probability
 
         if population is not None:
             self.population = population
