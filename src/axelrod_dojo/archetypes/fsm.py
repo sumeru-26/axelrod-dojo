@@ -82,11 +82,10 @@ class FSMParams(Params):
 
     def mutate(self):
         self.rows = self.mutate_rows(self.rows, self.mutation_probability)
-        if random.random() < self.mutation_probability:
+        if random.random() < self.mutation_probability / 10:
             self.initial_action = self.initial_action.flip()
-        if random.random() < self.mutation_probability / self.num_states:
+        if random.random() < self.mutation_probability / (10 * self.num_states):
             self.initial_state = randrange(self.num_states)
-        # Change node size?
 
     @staticmethod
     def crossover_rows(rows1, rows2):

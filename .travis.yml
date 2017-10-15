@@ -15,5 +15,6 @@ script:
   - python setup.py develop
   - coverage run --source=src -m unittest discover tests
   - coverage report -m
+  - python doctests.py
 after_success:
   - coveralls
