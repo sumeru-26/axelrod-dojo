@@ -37,7 +37,7 @@ class TestHMM(unittest.TestCase):
 
         generations = 4
         axl.seed(0)
-        population.run(generations)
+        population.run(generations, print_output=False)
         self.assertEqual(population.generation, 4)
 
         # Manually read from temp file to find best strategy
@@ -73,7 +73,7 @@ class TestHMM(unittest.TestCase):
                                      processes=1)
         generations = 4
         axl.seed(0)
-        population.run(generations)
+        population.run(generations, print_output=False)
         self.assertEqual(population.generation, 4)
 
     def test_score_with_weights(self):
@@ -103,7 +103,7 @@ class TestHMM(unittest.TestCase):
 
         generations = 4
         axl.seed(0)
-        population.run(generations)
+        population.run(generations, print_output=False)
         self.assertEqual(population.generation, 4)
 
         # Manually read from temp file to find best strategy
@@ -155,7 +155,7 @@ class TestHMM(unittest.TestCase):
 
         generations = 4
         axl.seed(0)
-        population.run(generations)
+        population.run(generations, print_output=False)
         self.assertEqual(population.generation, 4)
 
         # Manually read from temp file to find best strategy
@@ -208,7 +208,7 @@ class TestHMM(unittest.TestCase):
 
         generations = 4
         axl.seed(0)
-        population.run(generations)
+        population.run(generations, print_output=False)
         self.assertEqual(population.generation, 4)
 
         # Manually read from tempo file to find best strategy
@@ -259,7 +259,7 @@ class TestHMM(unittest.TestCase):
 
         generations = 4
         axl.seed(0)
-        population.run(generations)
+        population.run(generations, print_output=False)
         self.assertEqual(population.generation, 4)
 
     def test_population_init_with_given_rate(self):
@@ -291,7 +291,7 @@ class TestHMM(unittest.TestCase):
             self.assertEqual(p.mutation_probability, .5)
         generations = 1
         axl.seed(0)
-        population.run(generations)
+        population.run(generations, print_output=False)
         self.assertEqual(population.generation, 1)
 
     def test_score_pso(self):
@@ -381,7 +381,7 @@ class TestHMM(unittest.TestCase):
                                      processes=1)
 
         axl.seed(0)
-        population.run(generations)
+        population.run(generations, print_output=False)
         
         # Block resource (?)
         with open(self.temporary_file.name, "w") as f:

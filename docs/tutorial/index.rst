@@ -53,7 +53,8 @@ We can now evolve our population::
 
 The :code:`run` command prints out the progress of the algorithm and this is
 also written to the output file (we passed :code:`output_filename` as an
-argument earlier).
+argument earlier). The printing can be turned off to keep logging to a minimum
+by passing :code:`print_output=False` to the :code:`run`.
 
 The last best score is a finite state machine with representation
 :code:`0:C:0_C_0_C:0_D_1_D:1_C_1_D:1_D_1_D` which corresponds to a strategy that

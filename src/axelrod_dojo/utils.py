@@ -2,7 +2,6 @@ from collections import namedtuple
 from functools import partial
 from statistics import mean
 import csv
-import os
 
 import numpy as np
 import axelrod as axl
@@ -11,17 +10,14 @@ import axelrod as axl
 ## Output Evolutionary Algorithm results
 
 class Outputer(object):
-    def __init__(self, filename, mode='w'):
-        self.output = open(filename, mode)
-        self.writer = csv.writer(self.output)
+    def __init__(self, filename, mode='a'):
+        self.file = filename
+        self.mode = mode
 
-    def write(self, row):
-        self.writer.writerow(row)
-        self.output.flush()
-        os.fsync(self.output.fileno())
-
-    def close(self):
-        self.output.close()
+    def write_row(self, row):
+        with open(self.file, self.mode, newline='') as file_writer:
+            writer = csv.writer(file_writer)
+            writer.writerow(row)
 
 
 ## Objective functions for optimization
@@ -105,11 +101,13 @@ def objective_moran_win(me, other, turns, noise, repetitions, N=5,
             scores_for_this_opponent.append(0)
     return scores_for_this_opponent
 
+
 # Evolutionary Algorithm
 
 
 class Params(object):
     """Abstract Base Class for Parameters Objects."""
+
     def mutate(self):
         pass
 
@@ -146,6 +144,7 @@ class Params(object):
     def create_vector_bounds(self):
         """Creates the bounds for the decision variables."""
         pass
+
 
 PlayerInfo = namedtuple('PlayerInfo', ['strategy', 'init_kwargs'])
 
@@ -193,4 +192,3 @@ def load_params(params_class, filename, num):
     for score, rep in all_params[:num]:
         best_params.append(parser(rep))
     return best_params
-

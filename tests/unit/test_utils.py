@@ -10,17 +10,18 @@ import axelrod_dojo.utils as utils
 
 class TestOutputer(unittest.TestCase):
     temporary_file = tempfile.NamedTemporaryFile()
-    outputer = utils.Outputer(filename=temporary_file.name)
+    outputer = utils.Outputer(filename=temporary_file.name, mode='a')
 
     def test_init(self):
-        self.assertIsInstance(self.outputer.output, io.TextIOWrapper)
-        self.assertEqual(str(type(self.outputer.writer)),
-                        "<class '_csv.writer'>")
+        self.assertEqual(self.outputer.file, self.temporary_file.name)
+        self.assertEqual(self.outputer.mode, 'a')
 
-    def test_write(self):
-        self.assertIsNone(self.outputer.write([1, 2, 3]))
+    def test_write_and_clear(self):
+        writing_line = [1, "something", 3.0]
+        self.outputer.write_row(writing_line)
+        self.outputer.write_row(writing_line)
         with open(self.temporary_file.name, "r") as f:
-            self.assertEqual("1,2,3\n", f.read())
+            self.assertEqual("1,something,3.0\n1,something,3.0\n", f.read())
 
 
 class TestPrepareObjective(unittest.TestCase):
@@ -31,11 +32,11 @@ class TestPrepareObjective(unittest.TestCase):
 
     def test_score(self):
         objective = utils.prepare_objective(
-                                    name="score",
-                                    turns=200,
-                                    noise=0,
-                                    match_attributes={"length": float("inf")},
-                                    repetitions=5)
+            name="score",
+            turns=200,
+            noise=0,
+            match_attributes={"length": float("inf")},
+            repetitions=5)
         self.assertIsInstance(objective, functools.partial)
         self.assertIn("objective_score ", str(objective))
 
@@ -181,6 +182,7 @@ class DummyParams(utils.Params):
     """
     Dummy Params class for testing purposes
     """
+
     def player(self):
         return axl.Cooperator()
 

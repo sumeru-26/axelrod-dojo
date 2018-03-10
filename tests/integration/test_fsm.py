@@ -38,7 +38,7 @@ class TestFSMPopulation(unittest.TestCase):
 
         generations = 4
         axl.seed(0)
-        population.run(generations)
+        population.run(generations, print_output=False)
         self.assertEqual(population.generation, 4)
 
         # Manually read from tempo file to find best strategy
@@ -74,7 +74,7 @@ class TestFSMPopulation(unittest.TestCase):
                                      processes=1)
         generations = 4
         axl.seed(0)
-        population.run(generations)
+        population.run(generations, print_output=False)
         self.assertEqual(population.generation, 4)
 
     def test_score_with_weights(self):
@@ -104,7 +104,7 @@ class TestFSMPopulation(unittest.TestCase):
 
         generations = 4
         axl.seed(0)
-        population.run(generations)
+        population.run(generations, print_output=False)
         self.assertEqual(population.generation, 4)
 
         # Manually read from tempo file to find best strategy
@@ -156,7 +156,7 @@ class TestFSMPopulation(unittest.TestCase):
 
         generations = 4
         axl.seed(0)
-        population.run(generations)
+        population.run(generations, print_output=False)
         self.assertEqual(population.generation, 4)
 
         # Manually read from tempo file to find best strategy
@@ -209,7 +209,7 @@ class TestFSMPopulation(unittest.TestCase):
 
         generations = 4
         axl.seed(0)
-        population.run(generations)
+        population.run(generations, print_output=False)
         self.assertEqual(population.generation, 4)
 
         # Manually read from tempo file to find best strategy
@@ -266,7 +266,7 @@ class TestFSMPopulation(unittest.TestCase):
 
         generations = 4
         axl.seed(0)
-        population.run(generations)
+        population.run(generations, print_output=False)
         self.assertEqual(population.generation, 4)
 
     def test_population_init_with_given_rate(self):
@@ -298,5 +298,5 @@ class TestFSMPopulation(unittest.TestCase):
             self.assertEqual(p.mutation_probability, .5)
         generations = 1
         axl.seed(0)
-        population.run(generations)
+        population.run(generations, print_output=False)
         self.assertEqual(population.generation, 1)
