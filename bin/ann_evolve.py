@@ -7,7 +7,7 @@ https://gist.github.com/mojones/b809ba565c93feb8d44becc7b93e37c6
 
 Usage:
     ann_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
-    [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
+    [--mu mutation_probability] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
     [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
     [--turns TURNS] [--noise NOISE] [--nmoran NMORAN]
     [--features FEATURES] [--hidden HIDDEN] [--mu_distance DISTANCE]
@@ -16,7 +16,7 @@ Options:
     -h --help                   Show help
     --generations GENERATIONS   Generations to run the EA [default: 500]
     --population POPULATION     Starting population size  [default: 40]
-    --mu MUTATION_RATE          Mutation rate [default: 0.1]
+    --mu mutation_probability          Mutation rate [default: 0.1]
     --bottleneck BOTTLENECK     Number of individuals to keep from each generation [default: 10]
     --processes PROCESSES       Number of processes to use [default: 1]
     --output OUTPUT_FILE        File to write data to [default: ann_params.csv]
@@ -43,7 +43,7 @@ C, D = Action.C, Action.D
 
 ## Todo: mutation decay
 # if decay:
-#     mutation_rate *= 0.995
+#     mutation_probability *= 0.995
 #     mutation_distance *= 0.995
 
 
@@ -54,18 +54,18 @@ def num_weights(num_features, num_hidden):
 
 class ANNParams(Params):
 
-    def __init__(self, num_features, num_hidden, mutation_rate=0.1,
+    def __init__(self, num_features, num_hidden, mutation_probability=0.1,
                  mutation_distance=5, weights=None):
         self.PlayerClass = ANN
         self.num_features = num_features
         self.num_hidden = num_hidden
 
         self.mutation_distance = mutation_distance
-        if mutation_rate is None:
+        if mutation_probability is None:
             size = num_weights(num_features, num_hidden)
-            self.mutation_rate = 10 / size
+            self.mutation_probability = 10 / size
         else:
-            self.mutation_rate = mutation_rate
+            self.mutation_probability = mutation_probability
 
         if weights is None:
             self.randomize()
@@ -80,7 +80,7 @@ class ANNParams(Params):
 
     def copy(self):
         return ANNParams(
-            self.num_features, self.num_hidden, self.mutation_rate,
+            self.num_features, self.num_hidden, self.mutation_probability,
             self.mutation_distance, list(self.weights))
 
     def randomize(self):
@@ -88,12 +88,12 @@ class ANNParams(Params):
         self.weights = [random.uniform(-1, 1) for _ in range(size)]
 
     @staticmethod
-    def mutate_weights(weights, num_features, num_hidden, mutation_rate,
+    def mutate_weights(weights, num_features, num_hidden, mutation_probability,
                        mutation_distance):
         size = num_weights(num_features, num_hidden)
         randoms = np.random.random(size)
         for i, r in enumerate(randoms):
-            if r < mutation_rate:
+            if r < mutation_probability:
                 p = 1 + random.uniform(-1, 1) * mutation_distance
                 weights[i] *= p
         return weights
@@ -101,7 +101,7 @@ class ANNParams(Params):
     def mutate(self):
         self.weights = self.mutate_weights(
             self.weights, self.num_features, self.num_hidden,
-            self.mutation_rate, self.mutation_distance)
+            self.mutation_probability, self.mutation_distance)
         # Add in layer sizes?
 
     @staticmethod
@@ -114,7 +114,7 @@ class ANNParams(Params):
         # Assuming that the number of states is the same
         new_weights = self.crossover_weights(self.weights, other.weights)
         return ANNParams(
-            self.num_features, self.num_hidden, self.mutation_rate,
+            self.num_features, self.num_hidden, self.mutation_probability,
             self.mutation_distance, new_weights)
 
     def __repr__(self):
