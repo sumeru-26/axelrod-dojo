@@ -32,6 +32,7 @@ Options:
 
 import random
 
+import numpy as np
 from docopt import docopt
 
 from axelrod import Action
