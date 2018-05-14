@@ -14,8 +14,8 @@ class Population(object):
     def __init__(self, params_class, params_kwargs, size, objective, output_filename,
                  bottleneck=None, mutation_probability=.1, opponents=None,
                  processes=1, weights=None,
-                 sample_count=None, population=None):
-        self.print_output = True
+                 sample_count=None, population=None, print_output=True):
+        self.print_output = print_output
         self.params_class = params_class
         self.bottleneck = bottleneck
         if processes == 0:
@@ -106,6 +106,7 @@ class Population(object):
 
         # Next Population
         indices_to_keep = [p for (s, p) in results[0: self.bottleneck]]
+
         self.subset_population(indices_to_keep)
         # Add mutants of the best players
         best_mutants = [p.copy() for p in self.population]

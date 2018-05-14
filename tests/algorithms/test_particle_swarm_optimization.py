@@ -53,7 +53,7 @@ class TestPSO(unittest.TestCase):
 
     def test_pso_with_gambler(self):
         name = "score"
-        turns = 10
+        turns = 50
         noise = 0
         repetitions = 5
         num_plays = 1
@@ -71,20 +71,16 @@ class TestPSO(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        pso = PSO(GamblerParams, params_kwargs, objective=objective, debug=False,
+        pso = dojo.PSO(dojo.GamblerParams, params_kwargs, objective=objective, debug=False,
                   opponents=opponents, population=population, generations=generations)
 
         axl.seed(0)
         opt_vector, opt_objective_value = pso.swarm()
 
-        self.assertTrue(np.allclose(opt_vector, np.array([0.5488135, 0.71518937,
-                                                          0.60276338,
-                                                          0.54488318,
-                                                          0.4236548,
-                                                          0.64589411,
-                                                          0.43758721,
-                                                          0.891773])))
-        self.assertEqual(abs(opt_objective_value), 3)
+        self.assertTrue(np.allclose(opt_vector, np.array([[0. , 0. , 0.36158016,
+                                                           0.35863128, 0. , 1.,
+                                                           0.72670793, 0.67951873]])))
+        self.assertEqual(abs(opt_objective_value), 4.96)
 
     def test_pso_with_fsm(self):
         name = "score"

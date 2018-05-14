@@ -1,8 +1,12 @@
 import random
+import numpy as np
 
 from axelrod import Action, Gambler
 from axelrod.strategies.lookerup import create_lookup_table_keys
 from axelrod_dojo.utils import Params
+
+from axelrod.strategies.lookerup import Plays
+
 
 C, D = Action.C, Action.D
 
@@ -24,11 +28,13 @@ class GamblerParams(Params):
     op_start_plays : integer
         The number of opponent's initial moves to remember   
     """
-    def __init__(self, plays, op_plays, op_start_plays, pattern=None):
+    def __init__(self, plays, op_plays, op_start_plays, pattern=None,
+                 mutation_probability=0):
         self.PlayerClass = Gambler
         self.plays = plays
         self.op_plays = op_plays
         self.op_start_plays = op_start_plays
+        self.mutation_probability = mutation_probability
 
         if pattern is None:
             self.randomize()
@@ -38,13 +44,19 @@ class GamblerParams(Params):
 
     def player(self):
         """Turns the attribute vector in to a Gambler player instance."""
-        player = self.PlayerClass(pattern=self.vector)
+        parameters = Plays(self_plays=self.plays, op_plays=self.op_plays,
+                           op_openings=self.op_start_plays)
+        player = self.PlayerClass(pattern=self.pattern, parameters=parameters)
         return player
 
+    def copy(self):
+        return GamblerParams(plays=self.plays, op_plays=self.op_plays,
+                             op_start_plays=self.op_start_plays, pattern=self.pattern)
+
     def receive_vector(self, vector):
-        """Receives a vector and creates an instance attribute called
-        vector.  Ignores extra parameters."""
-        self.vector = vector
+        """Receives a vector and updates the player's pattern.
+          Ignores extra parameters."""
+        self.pattern = vector
 
     def create_vector_bounds(self):
         """Creates the bounds for the decision variables.  Ignores extra
@@ -54,6 +66,34 @@ class GamblerParams(Params):
         ub = [1.0] * size
 
         return lb, ub
+
+    @staticmethod
+    def mutate_pattern(pattern, mutation_probability):
+        randoms = np.random.random(len(pattern))
+
+        for i, _ in enumerate(pattern):
+            if randoms[i] < mutation_probability:
+                ep = random.uniform(-1, 1) / 4
+                pattern[i] += ep
+                if pattern[i] < 0:
+                    pattern[i] = 0
+                if pattern[i] > 1:
+                    pattern[i] = 1
+        return pattern
+
+    def mutate(self):
+        self.pattern = self.mutate_pattern(self.pattern, self.mutation_probability)
+
+    def crossover(self, other):
+        pattern1 = self.pattern
+        pattern2 = other.pattern
+
+        cross_point = int(random.randint(0, len(pattern1)))
+        offspring_pattern = pattern1[:cross_point] + pattern2[cross_point:]
+        return GamblerParams(plays=self.plays, op_plays=self.op_plays,
+                             op_start_plays=self.op_start_plays,
+                             pattern=offspring_pattern,
+                             mutation_probability=self.mutation_probability)
 
     @staticmethod
     def random_params(plays, op_plays, op_start_plays):
