@@ -5,6 +5,7 @@ from random import randrange, choice
 import numpy as np
 from axelrod import Action, FSMPlayer
 from axelrod.action import UnknownActionError
+from axelrod.player import Player
 
 from axelrod_dojo.utils import Params
 
@@ -173,3 +174,105 @@ class FSMParams(Params):
         ub = [1] * size
 
         return lb, ub
+
+
+class SimpleFSM(object):
+    """Simple implementation of a finite state machine that transitions
+    between states based on the last round of play.
+
+    https://en.wikipedia.org/wiki/Finite-state_machine
+    """
+
+    def __init__(self, transitions: tuple, initial_state: int) -> None:
+        """
+        transitions is a list of the form
+        ((state, last_opponent_action, next_state, next_action), ...)
+
+        TitForTat would be represented with the following table:
+        ((1, C, 1, C), (1, D, 1, D))
+        with initial play C and initial state 1.
+
+        """
+        self._state = initial_state
+        self._state_transitions = {(current_state, input_action): (next_state, output_action) for
+                                   current_state, input_action, next_state, output_action in transitions}  # type: dict
+
+        self._raise_error_for_bad_input()
+
+    def _raise_error_for_bad_input(self):
+        callable_states = set(pair[0] for pair in self._state_transitions.values())
+        callable_states.add(self._state)
+        for state in callable_states:
+            self._raise_error_for_bad_state(state)
+
+    def _raise_error_for_bad_state(self, state: int):
+        if (state, C) not in self._state_transitions or (state, D) not in self._state_transitions:
+            raise ValueError('state: {} does not have values for both C and D'.format(state))
+
+    @property
+    def state(self) -> int:
+        return self._state
+
+    @state.setter
+    def state(self, new_state: int):
+        self._raise_error_for_bad_state(new_state)
+        self._state = new_state
+
+    @property
+    def state_transitions(self) -> dict:
+        return self._state_transitions.copy()
+
+    def move(self, opponent_action: Action) -> Action:
+        """Computes the response move and changes state."""
+        next_state, next_action = self._state_transitions[(self._state, opponent_action)]
+        self._state = next_state
+        return next_action
+
+    def __eq__(self, other) -> bool:
+        """Equality of two FSMs"""
+        if not isinstance(other, SimpleFSM):
+            return False
+        return (self._state, self._state_transitions) == (other.state, other.state_transitions)
+
+
+class FSMPlayer(Player):
+    """Abstract base class for finite state machine players."""
+
+    name = "FSM Player"
+
+    classifier = {
+        'memory_depth': 1,
+        'stochastic': False,
+        'makes_use_of': set(),
+        'long_run_time': False,
+        'inspects_source': False,
+        'manipulates_source': False,
+        'manipulates_state': False
+    }
+
+    def __init__(self, transitions: tuple = ((1, C, 1, C), (1, D, 1, D)),
+                 initial_state: int = 1,
+                 initial_action: Action = C) -> None:
+
+        super().__init__()
+        self.initial_state = initial_state
+        self.initial_action = initial_action
+        self.fsm = SimpleFSM(transitions, initial_state)
+        self.transitions = transitions
+
+    def mutate(self):
+        num_states = len(set(x[1] for x in self.transitions))
+        params = FSMParams(
+            num_states,
+            self.transitions,
+            self.initial_state,
+            self.initial_action)
+        params.mutate()
+        return params.player()
+
+    def strategy(self, opponent: Player) -> Action:
+        if len(self.history) == 0:
+            return self.initial_action
+        else:
+            action = self.fsm.move(opponent.history[-1])
+            return action
