@@ -169,8 +169,6 @@ if __name__ == '__main__':
         "initial_actions": initial_actions,
         "mutation_probability": mutation_probability
     }
-    # [plays, op_plays, op_start_plays, initial_actions,
-    #               mutation_probability]
 
     objective = prepare_objective(name, turns, noise, repetitions, nmoran)
     population = Population(LookerUpParams, param_kwargs, population, objective,
