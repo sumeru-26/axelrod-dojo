@@ -31,6 +31,7 @@ from docopt import docopt
 import numpy as np
 
 from axelrod import Action
+from axelrod.action import actions_to_str
 from axelrod.strategies.lookerup import LookerUp, create_lookup_table_keys
 from axelrod_dojo import Params, Population, prepare_objective
 
@@ -48,7 +49,7 @@ class LookerUpParams(Params):
 
         if not initial_actions:
             table_depth = max(self.plays, self.op_plays, self.op_start_plays)
-            initial_actions = [random.choice(C, D) for _ in range(table_depth)]
+            initial_actions = [random.choice([C, D]) for _ in range(table_depth)]
         self.initial_actions = initial_actions
 
         if mutation_probability is None:
@@ -103,7 +104,7 @@ class LookerUpParams(Params):
 
     @staticmethod
     def crossover_tables(table1, table2):
-        keys = list(sorted(table1.keys()))
+        keys = list(table1.keys())
         crosspoint = random.randrange(len(keys))
         new_items = [(k, table1[k]) for k in keys[:crosspoint]]
         new_items += [(k, table2[k]) for k in keys[crosspoint:]]
@@ -122,8 +123,8 @@ class LookerUpParams(Params):
             self.plays,
             self.op_plays,
             self.op_start_plays,
-            ''.join(self.initial_actions),
-            ''.join([v for k, v in sorted(self.table.items())])
+            self.initial_actions,
+            actions_to_str([v for k, v in self.table.items()])
         )
 
     @classmethod
