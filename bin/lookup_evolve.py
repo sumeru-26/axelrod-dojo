@@ -2,7 +2,7 @@
 
 Usage:
     lookup_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
-    [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
+    [--mu mutation_probability] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
     [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
     [--turns TURNS] [--noise NOISE] [--nmoran NMORAN]
     [--plays PLAYS] [--op_plays OP_PLAYS] [--op_start_plays OP_START_PLAYS]
@@ -26,7 +26,6 @@ Options:
 """
 
 import random
-from random import choice
 
 from docopt import docopt
 import numpy as np
@@ -41,7 +40,7 @@ C, D = Action.C, Action.D
 class LookerUpParams(Params):
 
     def __init__(self, plays, op_plays, op_start_plays, initial_actions=None,
-                 mutation_rate=None, table=None):
+                 mutation_probability=None, table=None):
         self.PlayerClass = LookerUp
         self.plays = plays
         self.op_plays = op_plays
@@ -49,14 +48,14 @@ class LookerUpParams(Params):
 
         if not initial_actions:
             table_depth = max(self.plays, self.op_plays, self.op_start_plays)
-            initial_actions = [choice(C, D) for _ in range(table_depth)]
+            initial_actions = [random.choice(C, D) for _ in range(table_depth)]
         self.initial_actions = initial_actions
 
-        if mutation_rate is None:
+        if mutation_probability is None:
             keys = create_lookup_table_keys(plays, op_plays, op_start_plays)
-            self.mutation_rate = 2 / len(keys)
+            self.mutation_probability = 2 / len(keys)
         else:
-            self.mutation_rate = mutation_rate
+            self.mutation_probability = mutation_probability
         if table is None:
             self.randomize()
         else:
@@ -69,14 +68,14 @@ class LookerUpParams(Params):
 
     def copy(self):
         return LookerUpParams(self.plays, self.op_plays, self.op_start_plays,
-                              list(self.initial_actions), self.mutation_rate,
+                              list(self.initial_actions), self.mutation_probability,
                               dict(self.table))
 
     @staticmethod
     def random_params(plays, op_plays, op_start_plays):
         keys = create_lookup_table_keys(plays, op_plays, op_start_plays)
         # To get a pattern, we just randomly pick between C and D for each key
-        pattern = ''.join([random.choice([C, D]) for _ in keys])
+        pattern = [random.choice([C, D]) for _ in keys]
         table = dict(zip(keys, pattern))
         return table
 
@@ -86,16 +85,16 @@ class LookerUpParams(Params):
         self.table = table
 
     @staticmethod
-    def mutate_table(table, mutation_rate):
+    def mutate_table(table, mutation_probability):
         randoms = np.random.random(len(table.keys()))
         # Flip each value with a probability proportional to the mutation rate
         for i, (history, move) in enumerate(table.items()):
-            if randoms[i] < mutation_rate:
+            if randoms[i] < mutation_probability:
                 table[history] = move.flip()
         return table
 
     def mutate(self):
-        self.table = self.mutate_table(self.table, self.mutation_rate)
+        self.table = self.mutate_table(self.table, self.mutation_probability)
         # Add in starting moves
         for i in range(len(self.initial_actions)):
             r = random.random()
@@ -115,7 +114,7 @@ class LookerUpParams(Params):
         # Assuming that the number of states is the same
         new_table = self.crossover_tables(self.table, other.table)
         return LookerUpParams(self.plays, self.op_plays, self.op_start_plays,
-                              list(self.initial_actions), self.mutation_rate,
+                              list(self.initial_actions), self.mutation_probability,
                               new_table)
 
     def __repr__(self):
@@ -145,7 +144,7 @@ if __name__ == '__main__':
 
     # Vars for the genetic algorithm
     population = int(arguments['--population'])
-    mutation_rate = float(arguments['--mu'])
+    mutation_probability = float(arguments['--mu'])
     generations = int(arguments['--generations'])
     bottleneck = int(arguments['--bottleneck'])
     output_filename = arguments['--output']
@@ -163,10 +162,17 @@ if __name__ == '__main__':
     op_start_plays = int(arguments['--op_start_plays'])
     table_depth = max(plays, op_plays, op_start_plays)
     initial_actions = [C] * table_depth
-    param_args = [plays, op_plays, op_start_plays, initial_actions,
-                  mutation_rate]
+    param_kwargs = {
+        "plays": plays,
+        "op_plays": op_plays,
+        "op_start_plays": op_start_plays,
+        "initial_actions": initial_actions,
+        "mutation_probability": mutation_probability
+    }
+    # [plays, op_plays, op_start_plays, initial_actions,
+    #               mutation_probability]
 
     objective = prepare_objective(name, turns, noise, repetitions, nmoran)
-    population = Population(LookerUpParams, param_args, population, objective,
+    population = Population(LookerUpParams, param_kwargs, population, objective,
                             output_filename, bottleneck, processes=processes)
     population.run(generations)
