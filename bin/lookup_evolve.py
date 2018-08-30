@@ -124,7 +124,7 @@ class LookerUpParams(Params):
             self.op_plays,
             self.op_start_plays,
             actions_to_str(self.initial_actions),
-            actions_to_str([v for k, v in self.table.items()])
+            actions_to_str([v for k, v in sorted(self.table.items())])
         )
 
     @classmethod
