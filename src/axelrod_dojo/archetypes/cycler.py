@@ -1,7 +1,8 @@
 import axelrod as axl
 from numpy import random
 
-from axelrod_dojo.utils import Params
+from .params import Params
+
 
 C, D = axl.Action
 

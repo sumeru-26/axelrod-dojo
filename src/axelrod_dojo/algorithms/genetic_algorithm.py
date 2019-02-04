@@ -11,10 +11,10 @@ from axelrod_dojo.utils import Outputer, PlayerInfo, score_params
 class Population(object):
     """Population class that implements the evolutionary algorithm."""
 
-    def __init__(self, params_class, params_kwargs, size, objective, output_filename,
-                 bottleneck=None, mutation_probability=.1, opponents=None,
-                 processes=1, weights=None,
-                 sample_count=None, population=None, print_output=True):
+    def __init__(self, params_class, params_kwargs, size, objective,
+                 output_filename, bottleneck=None, mutation_probability=.1,
+                 opponents=None, processes=1, weights=None, sample_count=None,
+                 population=None, print_output=True):
         self.print_output = print_output
         self.params_class = params_class
         self.bottleneck = bottleneck
@@ -97,8 +97,9 @@ class Population(object):
             print("Generation", self.generation, "| Best Score:", results[0][0], repr(self.population[results[0][
                 1]]))  # prints best result
         # Write the data
-        # Note: if using this for analysis, for reproducability it may be useful to
-        # pass type(opponent) for each of the opponents. This will allow verification of results post run
+        # Note: if using this for analysis, for reproducibility it may be useful
+        # to pass type(opponent) for each of the opponents. This will allow
+        # verification of results post run.
 
         row = [self.generation, mean(scores), pstdev(scores), results[0][0],
                repr(self.population[results[0][1]])]

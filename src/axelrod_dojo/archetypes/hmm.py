@@ -4,7 +4,8 @@ from random import randrange
 import numpy as np
 from axelrod.strategies.hmm import HMMPlayer
 from axelrod import Action
-from axelrod_dojo.utils import Params
+
+from .params import Params
 
 C, D = Action.C, Action.D
 

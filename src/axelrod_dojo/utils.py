@@ -7,6 +7,10 @@ import numpy as np
 import axelrod as axl
 
 
+PlayerInfo = namedtuple('PlayerInfo', ['strategy', 'init_kwargs'])
+
+
+
 ## Output Evolutionary Algorithm results
 
 class Outputer(object):
@@ -25,7 +29,7 @@ class Outputer(object):
 def prepare_objective(name="score", turns=200, noise=0., repetitions=None,
                       nmoran=None, match_attributes=None):
     name = name.lower()
-    if name not in ["score", "score_diff", "moran"]:
+    if name not in ["score", "score_diff", "moran", "ultimatum_score"]:
         raise ValueError("Score must be one of score, score_diff, or moran")
     if name == "moran":
         if repetitions is None:
@@ -47,6 +51,12 @@ def prepare_objective(name="score", turns=200, noise=0., repetitions=None,
         objective = partial(objective_score_diff, turns=turns, noise=noise,
                             repetitions=repetitions,
                             match_attributes=match_attributes)
+    elif name == "ultimatum_score":
+        if repetitions is None:
+            repetitions = 20
+        objective = partial(objective_ultimatum_score, turns=turns, noise=noise,
+                            repetitions=repetitions,
+                            match_attributes=match_attributes)
     return objective
 
 
@@ -61,6 +71,22 @@ def objective_score(me, other, turns, noise, repetitions, match_attributes=None)
     for _ in range(repetitions):
         match.play()
         scores_for_this_opponent.append(match.final_score_per_turn()[0])
+    return scores_for_this_opponent
+
+
+def objective_ultimatum_score(player, coplayer, turns=1, noise=None,
+                              repetitions=100,
+                              match_attributes=None):
+    """Objective function to maximize total score over matches."""
+    match = axl.Match((player, coplayer), turns=turns, noise=noise,
+                      match_attributes=match_attributes)
+    if not match._stochastic:
+        repetitions = 1
+    scores_for_this_opponent = []
+
+    for _ in range(repetitions):
+        match.play()
+        scores_for_this_opponent.append(player.history[-1].scores[0])
     return scores_for_this_opponent
 
 
@@ -103,51 +129,6 @@ def objective_moran_win(me, other, turns, noise, repetitions, N=5,
 
 
 # Evolutionary Algorithm
-
-
-class Params(object):
-    """Abstract Base Class for Parameters Objects."""
-
-    def mutate(self):
-        pass
-
-    def random(self):
-        pass
-
-    def __repr__(self):
-        pass
-
-    def from_repr(self):
-        pass
-
-    def copy(self):
-        pass
-
-    def player(self):
-        pass
-
-    def params(self):
-        pass
-
-    def crossover(self, other):
-        pass
-
-    def receive_vector(self, vector):
-        """Receives a vector and creates an instance attribute called
-        vector."""
-        pass
-
-    def vector_to_instance(self):
-        """Turns the attribute vector in to an axelrod player instance."""
-        pass
-
-    def create_vector_bounds(self):
-        """Creates the bounds for the decision variables."""
-        pass
-
-
-PlayerInfo = namedtuple('PlayerInfo', ['strategy', 'init_kwargs'])
-
 
 def score_params(params, objective,
                  opponents_information, weights=None, sample_count=None,

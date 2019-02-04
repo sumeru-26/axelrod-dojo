@@ -6,7 +6,8 @@ import numpy as np
 from axelrod import Action, FSMPlayer
 from axelrod.action import UnknownActionError
 
-from axelrod_dojo.utils import Params
+from .params import Params
+
 
 C, D = Action.C, Action.D
 
@@ -17,7 +18,6 @@ def copy_lists(rows):
 
 
 class FSMParams(Params):
-
     def __init__(self, num_states, rows=None,
                  initial_state=0, initial_action=C,
                  mutation_probability=0):

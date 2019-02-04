@@ -3,10 +3,9 @@ import numpy as np
 
 from axelrod import Action, Gambler
 from axelrod.strategies.lookerup import create_lookup_table_keys
-from axelrod_dojo.utils import Params
-
 from axelrod.strategies.lookerup import Plays
 
+from .params import Params
 
 C, D = Action.C, Action.D
 
