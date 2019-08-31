@@ -24,37 +24,21 @@ Options:
     --states NUM_STATES         Number of FSM states [default: 8]
 """
 
-from docopt import docopt
-
 from axelrod import FSMPlayer
-from axelrod_dojo import Population, prepare_objective
+from axelrod_dojo import invoke
+
+
+def prepare_player_class_kwargs(arguments):
+    param_kwargs = {
+        "num_states": int(arguments['--states'])
+    }
+    return param_kwargs
 
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='FSM Evolver 0.4')
-    print(arguments)
-    processes = int(arguments['--processes'])
-
-    # Vars for the genetic algorithm
-    population = int(arguments['--population'])
-    mutation_probability = float(arguments['--mu'])
-    generations = int(arguments['--generations'])
-    bottleneck = int(arguments['--bottleneck'])
-    output_filename = arguments['--output']
-
-    # Objective
-    name = str(arguments['--objective'])
-    repetitions = int(arguments['--repetitions'])
-    turns = int(arguments['--turns'])
-    noise = float(arguments['--noise'])
-    nmoran = int(arguments['--nmoran'])
-
-    # FSM
-    num_states = int(arguments['--states'])
-    param_kwargs = {"num_states": num_states}
-
-    objective = prepare_objective(name, turns, noise, repetitions, nmoran)
-    population = Population(FSMPlayer, param_kwargs, population, objective,
-                            output_filename, bottleneck, mutation_probability,
-                            processes=processes)
-    population.run(generations)
+    invoke(
+        __doc__,
+        'FSM Evolver 0.4',
+        FSMPlayer,
+        prepare_player_class_kwargs
+    )

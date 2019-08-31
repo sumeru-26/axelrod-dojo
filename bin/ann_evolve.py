@@ -30,44 +30,23 @@ Options:
     --mu_distance DISTANCE      Delta max for weights updates [default: 10]
 """
 
-from docopt import docopt
+from axelrod import ANN
+from axelrod_dojo import invoke
 
-from axelrod import Action, ANN
-from axelrod_dojo import Population, prepare_objective
 
-C, D = Action.C, Action.D
+def prepare_player_class_kwargs(arguments):
+    param_kwargs = {
+        "num_features": int(arguments['--features']),
+        "num_hidden": int(arguments['--hidden']),
+        "mutation_distance": float(arguments['--mu_distance'])
+    }
+    return param_kwargs
 
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='ANN Evolver 0.4')
-    print(arguments)
-    processes = int(arguments['--processes'])
-
-    # Vars for the genetic algorithm
-    population = int(arguments['--population'])
-    mutation_probability = float(arguments['--mu'])
-    generations = int(arguments['--generations'])
-    bottleneck = int(arguments['--bottleneck'])
-    output_filename = arguments['--output']
-
-    # Objective
-    name = str(arguments['--objective'])
-    repetitions = int(arguments['--repetitions'])
-    turns = int(arguments['--turns'])
-    noise = float(arguments['--noise'])
-    nmoran = int(arguments['--nmoran'])
-
-    # ANN
-    num_features = int(arguments['--features'])
-    num_hidden = int(arguments['--hidden'])
-    mutation_distance = float(arguments['--mu_distance'])
-    param_kwargs = {"num_features": num_features, 
-                    "num_hidden": num_hidden,
-                    "mutation_distance": mutation_distance}
-
-    objective = prepare_objective(name, turns, noise, repetitions, nmoran)
-    population = Population(ANN, param_kwargs, population, objective,
-                            output_filename, bottleneck, 
-                            mutation_probability,
-                            processes=processes)
-    population.run(generations)
+    invoke(
+        __doc__,
+        'ANN Evolver 0.4',
+        ANN,
+        prepare_player_class_kwargs
+    )

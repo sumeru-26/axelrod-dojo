@@ -1,7 +1,7 @@
 from collections import namedtuple
+import csv
 from functools import partial
 from statistics import mean
-import csv
 
 import numpy as np
 import axelrod as axl
