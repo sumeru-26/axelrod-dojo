@@ -28,12 +28,13 @@ Options:
 
 from docopt import docopt
 
-from axelrod_dojo import HMMParams, Population, prepare_objective
+from axelrod import HMMPlayer
+from axelrod_dojo import Population, prepare_objective
 from axelrod_dojo.algorithms.particle_swarm_optimization import PSO
 
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='HMM Evolver 0.3')
+    arguments = docopt(__doc__, version='HMM Evolver 0.4')
     print(arguments)
     processes = int(arguments['--processes'])
 
@@ -57,16 +58,15 @@ if __name__ == '__main__':
 
     if arguments['--algorithm'] == "PS":
         objective = prepare_objective(name, turns, noise, repetitions, nmoran)
-        pso = PSO(HMMParams, params_kwargs, objective=objective,
-                  population=population, generations=generations,
-                  size=num_states)
+        pso = PSO(HMMPlayer, params_kwargs, objective=objective,
+                  population=population, generations=generations)
 
         xopt_helper, fopt = pso.swarm()
-        xopt = HMMParams(num_states=num_states)
+        xopt = HMMPlayer(num_states=num_states)
         xopt.read_vector(xopt_helper, num_states)
     else:
         objective = prepare_objective(name, turns, noise, repetitions, nmoran)
-        population = Population(HMMParams, params_kwargs, population, objective,
+        population = Population(HMMPlayer, params_kwargs, population, objective,
                                 output_filename, bottleneck, mutation_probability,
                                 processes=processes)
         population.run(generations)

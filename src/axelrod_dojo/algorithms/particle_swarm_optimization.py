@@ -8,11 +8,11 @@ from multiprocessing import cpu_count
 
 class PSO(object):
     """PSO class that implements a particle swarm optimization algorithm."""
-    def __init__(self, params_class, params_kwargs, objective, opponents=None,
+    def __init__(self, player_class, params_kwargs, objective, opponents=None,
                  population=1, generations=1, debug=True, phip=0.8, phig=0.8,
                  omega=0.8, weights=None, sample_count=None, processes=1):
 
-        self.params_class = params_class
+        self.player_class = player_class
         self.params_kwargs = params_kwargs
         self.objective = objective
         if opponents is None:
@@ -35,18 +35,17 @@ class PSO(object):
             self.processes = processes
 
     def swarm(self):
-
-        player = self.params_class(**self.params_kwargs)
+        player = self.player_class(**self.params_kwargs)
         lb, ub = player.create_vector_bounds()
 
         def objective_function(vector):
             player.receive_vector(vector=vector)
 
-            return - score_player(player, objective=self.objective,
-                                  opponents_information=self.opponents_information,
-                                  weights=self.weights,
-                                  sample_count=self.sample_count
-                                  )
+            return -score_player(player, objective=self.objective,
+                                 opponents_information=self.opponents_information,
+                                 weights=self.weights,
+                                 sample_count=self.sample_count
+                                 )
 
         # TODO remove check once v 0.7 is pip installable
         # There is a multiprocessing version (0.7) of pyswarm available at

@@ -55,8 +55,8 @@ if __name__ == "__main__":
     op_plays = int(arguments['--op_plays'])
     op_start_plays = int(arguments['--op_start_plays'])
     params_kwargs = {"plays": plays,
-                    "op_plays": op_plays,
-                    "op_state_plays": op_start_plays}
+                     "op_plays": op_plays,
+                     "op_state_plays": op_start_plays}
 
     objective = prepare_objective(name, turns, noise, repetitions, nmoran)
 
