@@ -38,6 +38,7 @@ def prepare_player_class_kwargs(arguments):
     param_kwargs = {
         "num_features": int(arguments['--features']),
         "num_hidden": int(arguments['--hidden']),
+        "mutation_probability": float(arguments['--mu']),
         "mutation_distance": float(arguments['--mu_distance'])
     }
     return param_kwargs

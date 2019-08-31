@@ -14,9 +14,9 @@ def parse_arguments(doc, version=None):
         "processes": int(arguments['--processes']),
         # Vars for the genetic algorithm
         "population": int(arguments['--population']),
-        "mutation_probability": float(arguments['--mu']),
         "generations": int(arguments['--generations']),
         "bottleneck": int(arguments['--bottleneck']),
+        "mutation_probability": float(arguments['--mu']),
         "output_filename": arguments['--output'],
         # Objective
         "name": str(arguments['--objective']),

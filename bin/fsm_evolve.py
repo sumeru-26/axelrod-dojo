@@ -30,7 +30,8 @@ from axelrod_dojo import invoke
 
 def prepare_player_class_kwargs(arguments):
     param_kwargs = {
-        "num_states": int(arguments['--states'])
+        "num_states": int(arguments['--states']),
+        "mutation_probability": float(arguments['--mu']),
     }
     return param_kwargs
 
