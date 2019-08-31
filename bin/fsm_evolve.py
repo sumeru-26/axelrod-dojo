@@ -26,11 +26,12 @@ Options:
 
 from docopt import docopt
 
-from axelrod_dojo import FSMParams, Population, prepare_objective
+from axelrod import FSMPlayer
+from axelrod_dojo import Population, prepare_objective
 
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='FSM Evolver 0.3')
+    arguments = docopt(__doc__, version='FSM Evolver 0.4')
     print(arguments)
     processes = int(arguments['--processes'])
 
@@ -53,7 +54,7 @@ if __name__ == '__main__':
     param_kwargs = {"num_states": num_states}
 
     objective = prepare_objective(name, turns, noise, repetitions, nmoran)
-    population = Population(FSMParams, param_kwargs, population, objective,
+    population = Population(FSMPlayer, param_kwargs, population, objective,
                             output_filename, bottleneck, mutation_probability,
                             processes=processes)
     population.run(generations)

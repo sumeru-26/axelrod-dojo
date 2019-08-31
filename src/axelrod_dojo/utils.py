@@ -7,6 +7,9 @@ import numpy as np
 import axelrod as axl
 
 
+PlayerInfo = namedtuple('PlayerInfo', ['strategy', 'init_kwargs'])
+
+
 ## Output Evolutionary Algorithm results
 
 class Outputer(object):
@@ -146,18 +149,11 @@ class Params(object):
         pass
 
 
-PlayerInfo = namedtuple('PlayerInfo', ['strategy', 'init_kwargs'])
-
-
-def score_params(params, objective,
-                 opponents_information, weights=None, sample_count=None,
-                 instance_generation_function='player'):
+def score_player(player, objective, opponents_information, weights=None, sample_count=None):
     """
-    Return the overall mean score of a Params instance.
+    Return the overall mean score of a Player
     """
     scores_for_all_opponents = []
-
-    player = getattr(params, instance_generation_function)()
 
     if sample_count is not None:
         indices = np.random.choice(len(opponents_information), sample_count)
@@ -172,8 +168,7 @@ def score_params(params, objective,
         mean_vs_opponent = mean(scores_for_this_opponent)
         scores_for_all_opponents.append(mean_vs_opponent)
 
-    overall_mean_score = np.average(scores_for_all_opponents,
-                                    weights=weights)
+    overall_mean_score = np.average(scores_for_all_opponents, weights=weights)
     return overall_mean_score
 
 
