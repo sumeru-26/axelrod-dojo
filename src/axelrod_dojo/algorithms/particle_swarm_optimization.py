@@ -1,7 +1,7 @@
 import axelrod as axl
 import pyswarm
 
-from axelrod_dojo.utils import score_params
+from axelrod_dojo.utils import score_player
 from axelrod_dojo.utils import PlayerInfo
 from multiprocessing import cpu_count
 
@@ -36,19 +36,17 @@ class PSO(object):
 
     def swarm(self):
 
-        params = self.params_class(**self.params_kwargs)
-        lb, ub = params.create_vector_bounds()
+        player = self.params_class(**self.params_kwargs)
+        lb, ub = player.create_vector_bounds()
 
         def objective_function(vector):
-            params.receive_vector(vector=vector)
-            instance_generation_function = 'player'
+            player.receive_vector(vector=vector)
 
-            return - score_params(params=params, objective=self.objective,
+            return - score_player(player, objective=self.objective,
                                   opponents_information=self.opponents_information,
                                   weights=self.weights,
-                                  sample_count=self.sample_count,
-                                  instance_generation_function=instance_generation_function
-                                 )
+                                  sample_count=self.sample_count
+                                  )
 
         # TODO remove check once v 0.7 is pip installable
         # There is a multiprocessing version (0.7) of pyswarm available at

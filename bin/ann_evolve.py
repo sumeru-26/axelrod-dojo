@@ -30,111 +30,16 @@ Options:
     --mu_distance DISTANCE      Delta max for weights updates [default: 10]
 """
 
-import random
-
 from docopt import docopt
 
-from axelrod import Action
-from axelrod.strategies.ann import ANN
-from axelrod_dojo import Params, Population, prepare_objective
+from axelrod import Action, ANN
+from axelrod_dojo import Population, prepare_objective
 
 C, D = Action.C, Action.D
 
 
-## Todo: mutation decay
-# if decay:
-#     mutation_probability *= 0.995
-#     mutation_distance *= 0.995
-
-
-def num_weights(num_features, num_hidden):
-    size = num_features * num_hidden + 2 * num_hidden
-    return size
-
-
-class ANNParams(Params):
-
-    def __init__(self, num_features, num_hidden, mutation_probability=0.1,
-                 mutation_distance=5, weights=None):
-        self.PlayerClass = ANN
-        self.num_features = num_features
-        self.num_hidden = num_hidden
-
-        self.mutation_distance = mutation_distance
-        if mutation_probability is None:
-            size = num_weights(num_features, num_hidden)
-            self.mutation_probability = 10 / size
-        else:
-            self.mutation_probability = mutation_probability
-
-        if weights is None:
-            self.randomize()
-        else:
-            # Make sure to copy the lists
-            self.weights = list(weights)
-
-    def player(self):
-        player = self.PlayerClass(self.weights, self.num_features,
-                                  self.num_hidden)
-        return player
-
-    def copy(self):
-        return ANNParams(
-            self.num_features, self.num_hidden, self.mutation_probability,
-            self.mutation_distance, list(self.weights))
-
-    def randomize(self):
-        size = num_weights(self.num_features, self.num_hidden)
-        self.weights = [random.uniform(-1, 1) for _ in range(size)]
-
-    @staticmethod
-    def mutate_weights(weights, num_features, num_hidden, mutation_probability,
-                       mutation_distance):
-        size = num_weights(num_features, num_hidden)
-        randoms = np.random.random(size)
-        for i, r in enumerate(randoms):
-            if r < mutation_probability:
-                p = 1 + random.uniform(-1, 1) * mutation_distance
-                weights[i] *= p
-        return weights
-
-    def mutate(self):
-        self.weights = self.mutate_weights(
-            self.weights, self.num_features, self.num_hidden,
-            self.mutation_probability, self.mutation_distance)
-        # Add in layer sizes?
-
-    @staticmethod
-    def crossover_weights(w1, w2):
-        crosspoint = random.randrange(len(w1))
-        new_weights = list(w1[:crosspoint]) + list(w2[crosspoint:])
-        return new_weights
-
-    def crossover(self, other):
-        # Assuming that the number of states is the same
-        new_weights = self.crossover_weights(self.weights, other.weights)
-        return ANNParams(
-            self.num_features, self.num_hidden, self.mutation_probability,
-            self.mutation_distance, new_weights)
-
-    def __repr__(self):
-        return "{}:{}:{}".format(
-            self.num_features,
-            self.num_hidden,
-            ':'.join(map(str, self.weights))
-        )
-
-    @classmethod
-    def parse_repr(cls, s):
-        elements = list(map(float, s.split(':')))
-        num_features = int(elements[0])
-        num_hidden = int(elements[1])
-        weights = elements[2:]
-        return cls(num_features, num_hidden, weights)
-
-
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='ANN Evolver 0.3')
+    arguments = docopt(__doc__, version='ANN Evolver 0.4')
     print(arguments)
     processes = int(arguments['--processes'])
 
@@ -157,11 +62,11 @@ if __name__ == '__main__':
     num_hidden = int(arguments['--hidden'])
     mutation_distance = float(arguments['--mu_distance'])
     param_kwargs = {"num_features": num_features, 
-                  "num_hidden": num_hidden, 
-                  "mutation_distance": mutation_distance}
+                    "num_hidden": num_hidden,
+                    "mutation_distance": mutation_distance}
 
     objective = prepare_objective(name, turns, noise, repetitions, nmoran)
-    population = Population(ANNParams, param_kwargs, population, objective,
+    population = Population(ANN, param_kwargs, population, objective,
                             output_filename, bottleneck, 
                             mutation_probability,
                             processes=processes)
