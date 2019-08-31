@@ -2,7 +2,7 @@
 
 Usage:
     lookup_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
-    [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
+    [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSES]
     [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
     [--turns TURNS] [--noise NOISE] [--nmoran NMORAN]
     [--plays PLAYS] [--op_plays OP_PLAYS] [--op_start_plays OP_START_PLAYS]

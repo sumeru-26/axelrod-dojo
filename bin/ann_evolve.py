@@ -7,7 +7,7 @@ https://gist.github.com/mojones/b809ba565c93feb8d44becc7b93e37c6
 
 Usage:
     ann_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
-    [--mu mutation_probability] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
+    [--mu mutation_probability] [--bottleneck BOTTLENECK] [--processes PROCESSES]
     [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
     [--turns TURNS] [--noise NOISE] [--nmoran NMORAN]
     [--features FEATURES] [--hidden HIDDEN] [--mu_distance DISTANCE]

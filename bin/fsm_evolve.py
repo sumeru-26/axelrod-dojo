@@ -3,7 +3,7 @@ Finite State Machine Evolver
 
 Usage:
     fsm_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
-    [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
+    [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSES]
     [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
     [--turns TURNS] [--noise NOISE] [--nmoran NMORAN]
     [--states NUM_STATES]
