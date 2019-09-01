@@ -1,10 +1,11 @@
-import axelrod as axl
-import axelrod_dojo as dojo
 import functools
-import numpy as np
 import unittest
+import numpy as np
 
-from axelrod_dojo import GamblerParams, prepare_objective, FSMParams
+import axelrod as axl
+from axelrod import EvolvableGambler, EvolvableFSMPlayer
+import axelrod_dojo as dojo
+from axelrod_dojo import prepare_objective
 from axelrod_dojo.algorithms.particle_swarm_optimization import PSO
 
 
@@ -13,7 +14,7 @@ class TestPSO(unittest.TestCase):
         params = [1, 1, 1]
         objective = prepare_objective('score', 2, 0, 1, nmoran=False)
 
-        pso = PSO(GamblerParams, params, objective=objective)
+        pso = PSO(EvolvableGambler, params, objective=objective)
 
         self.assertIsInstance(pso.objective, functools.partial)
         self.assertEqual(len(pso.opponents_information), len(axl.short_run_time_strategies))
@@ -36,7 +37,7 @@ class TestPSO(unittest.TestCase):
         phig = 0.6
         omega = 0.6
 
-        pso = PSO(GamblerParams, params, objective=objective,
+        pso = PSO(EvolvableGambler, params, objective=objective,
                   opponents=opponents, population=population,
                   generations=generations, debug=debug, phip=phip, phig=phig,
                   omega=omega)
@@ -59,9 +60,7 @@ class TestPSO(unittest.TestCase):
         num_plays = 1
         num_op_plays = 1
         num_op_start_plays = 1
-        params_kwargs = {"plays": num_plays,
-                         "op_plays": num_op_plays,
-                         "op_start_plays": num_op_start_plays}
+        params_kwargs = {"parameters": (num_plays, num_op_plays, num_op_start_plays)}
         population = 10
         generations = 100
         opponents = [axl.Cooperator() for _ in range(5)]
@@ -71,8 +70,8 @@ class TestPSO(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        pso = dojo.PSO(dojo.GamblerParams, params_kwargs, objective=objective, debug=False,
-                  opponents=opponents, population=population, generations=generations)
+        pso = dojo.PSO(EvolvableGambler, params_kwargs, objective=objective, debug=False,
+                       opponents=opponents, population=population, generations=generations)
 
         axl.seed(0)
         opt_vector, opt_objective_value = pso.swarm()
@@ -98,7 +97,7 @@ class TestPSO(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        pso = PSO(FSMParams, params_kwargs, objective=objective, debug=False,
+        pso = PSO(EvolvableFSMPlayer, params_kwargs, objective=objective, debug=False,
                   opponents=opponents, population=population, generations=generations)
 
         axl.seed(0)

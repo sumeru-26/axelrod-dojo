@@ -214,30 +214,3 @@ class TestHMMParams(unittest.TestCase):
         self.assertEqual(parameters.transitions_C, t_C)
         self.assertEqual(parameters.transitions_D, t_D)
         self.assertEqual(parameters.emission_probabilities, p)
-
-    def test_vector_to_instance(self):
-        num_states = 4
-        
-        vector = []
-        for _ in range(2 * num_states):
-            vector += random_vector(num_states)
-        for _ in range(num_states + 1):
-            vector.append(random.random())
-            
-        hmm_params = HMMParams(num_states=num_states)
-        hmm_params.receive_vector(vector=vector)
-
-        instance = hmm_params.player()
-        self.assertIsInstance(instance, axl.HMMPlayer)
-
-    def test_create_vector_bounds(self):
-        num_states = 4
-        size = 2 * num_states ** 2 + num_states + 1
-        
-        hmm_params = HMMParams(num_states=num_states)
-        lb, ub = hmm_params.create_vector_bounds()
-
-        self.assertIsInstance(lb, list)
-        self.assertEqual(len(lb), size)
-        self.assertIsInstance(ub, list)
-        self.assertEqual(len(ub), size)

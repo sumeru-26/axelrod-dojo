@@ -1,6 +1,5 @@
 import unittest
 
-import io
 import tempfile
 import functools
 
@@ -158,24 +157,6 @@ class TestObjectiveMoran(unittest.TestCase):
                                                                noise=0)
             self.assertEqual(fixation_probabilities,
                              expected_fixation_probabilities)
-
-
-class TestBaseParametersClass(unittest.TestCase):
-    def test_null_methods(self):
-        parameters = utils.Params()
-        self.assertIsNone(parameters.mutate())
-        self.assertIsNone(parameters.random())
-        self.assertIsNone(parameters.__repr__())
-        self.assertIsNone(parameters.from_repr())
-        self.assertIsNone(parameters.copy())
-        self.assertIsNone(parameters.player())
-        self.assertIsNone(parameters.params())
-        other = axl.Player()
-        self.assertIsNone(parameters.crossover(other))
-        vector = [0.2, 0.4, 0.6, 0.8]
-        self.assertIsNone(parameters.receive_vector(vector))
-        self.assertIsNone(parameters.vector_to_instance())
-        self.assertIsNone(parameters.create_vector_bounds())
 
 
 class DummyParams(utils.Params):

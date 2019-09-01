@@ -145,24 +145,3 @@ class TestFSMParams(unittest.TestCase):
         self.assertEqual(parameters.initial_action, D)
         self.assertEqual(parameters.rows, rows)
 
-    def test_vector_to_instance(self):
-
-        num_states = 4
-        vector = [random.random() for _ in range(num_states * 4 + 1)]
-        fsm_params = FSMParams(num_states=4)
-        fsm_params.receive_vector(vector=vector)
-
-        instance = fsm_params.player()
-
-        self.assertIsInstance(instance, axl.FSMPlayer)
-
-    def test_create_vector_bounds(self):
-
-        num_states = 4
-        fsm_params = FSMParams(num_states=num_states)
-        lb, ub = fsm_params.create_vector_bounds()
-
-        self.assertIsInstance(lb, list)
-        self.assertEqual(len(lb), len(fsm_params.rows) * 2 + 1)
-        self.assertIsInstance(ub, list)
-        self.assertEqual(len(ub), len(fsm_params.rows) * 2 + 1)
