@@ -128,9 +128,9 @@ def score_player(player, objective, opponents_information, weights=None, sample_
     return overall_mean_score
 
 
-def load_params(params_class, filename, num):
+def load_params(player_class, filename, num):
     """Load the best num parameters from the given file."""
-    parser = params_class.parse_repr
+    parser = player_class.deserialize_parameters
     all_params = []
 
     with open(filename) as datafile:

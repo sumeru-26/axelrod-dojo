@@ -1,9 +1,8 @@
+from multiprocessing import cpu_count
 import axelrod as axl
 import pyswarm
-
 from axelrod_dojo.utils import score_player
 from axelrod_dojo.utils import PlayerInfo
-from multiprocessing import cpu_count
 
 
 class PSO(object):

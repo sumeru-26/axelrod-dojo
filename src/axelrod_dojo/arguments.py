@@ -1,6 +1,6 @@
 from docopt import docopt
 from .utils import prepare_objective
-from .algorithms.genetic_algorithm import Population
+from .algorithms.evolutionary_algorithm import Population
 from .algorithms.particle_swarm_optimization import PSO
 
 
