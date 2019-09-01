@@ -30,8 +30,8 @@ Options:
     --mu_distance DISTANCE      Delta max for weights updates [default: 10]
 """
 
-from axelrod import ANN
-from axelrod_dojo import invoke
+from axelrod import EvolvableANN
+from axelrod_dojo import invoke_training
 
 
 def prepare_player_class_kwargs(arguments):
@@ -45,9 +45,9 @@ def prepare_player_class_kwargs(arguments):
 
 
 if __name__ == '__main__':
-    invoke(
+    invoke_training(
         __doc__,
         'ANN Evolver 0.4',
-        ANN,
+        EvolvableANN,
         prepare_player_class_kwargs
     )

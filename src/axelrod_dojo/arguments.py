@@ -37,7 +37,7 @@ def parse_arguments(doc, version=None):
     return arguments, algorithm, algorithm_arguments, objective
 
 
-def invoke(doc, version, player_class, player_kwargs_func):
+def invoke_training(doc, version, player_class, player_kwargs_func):
     arguments, algorithm, algorithm_arguments, objective = parse_arguments(doc, version)
     player_kwargs = player_kwargs_func(arguments)
     print(arguments)

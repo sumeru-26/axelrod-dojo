@@ -34,8 +34,8 @@ Options:
 """
 
 
-from axelrod import Action, Gambler
-from axelrod_dojo import invoke
+from axelrod import Action, EvolvableGambler
+from axelrod_dojo import invoke_training
 
 
 def prepare_player_class_kwargs(arguments):
@@ -53,10 +53,10 @@ def prepare_player_class_kwargs(arguments):
 
 
 if __name__ == '__main__':
-    invoke(
+    invoke_training(
         __doc__,
         'PSO Evolver 0.4',
-        Gambler,
+        EvolvableGambler,
         prepare_player_class_kwargs
     )
 

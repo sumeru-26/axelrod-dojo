@@ -24,8 +24,8 @@ Options:
     --states NUM_STATES         Number of FSM states [default: 8]
 """
 
-from axelrod import FSMPlayer
-from axelrod_dojo import invoke
+from axelrod import EvolvableFSMPlayer
+from axelrod_dojo import invoke_training
 
 
 def prepare_player_class_kwargs(arguments):
@@ -37,9 +37,9 @@ def prepare_player_class_kwargs(arguments):
 
 
 if __name__ == '__main__':
-    invoke(
+    invoke_training(
         __doc__,
         'FSM Evolver 0.4',
-        FSMPlayer,
+        EvolvableFSMPlayer,
         prepare_player_class_kwargs
     )

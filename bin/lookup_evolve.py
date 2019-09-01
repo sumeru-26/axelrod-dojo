@@ -26,8 +26,8 @@ Options:
 """
 
 
-from axelrod import Action, LookerUp
-from axelrod_dojo import invoke
+from axelrod import Action, EvolvableLookerUp
+from axelrod_dojo import invoke_training
 
 
 def prepare_player_class_kwargs(arguments):
@@ -44,30 +44,10 @@ def prepare_player_class_kwargs(arguments):
     return param_kwargs
 
 
-    # def __repr__(self):
-    #     return "{}:{}:{}:{}:{}".format(
-    #         self.plays,
-    #         self.op_plays,
-    #         self.op_start_plays,
-    #         actions_to_str(self.initial_actions),
-    #         actions_to_str([v for k, v in sorted(self.table.items())])
-    #     )
-    #
-    # @classmethod
-    # def parse_repr(cls, s):
-    #     elements = s.split(':')
-    #     plays, op_plays, op_start_plays = list(map(int, elements[:3]))
-    #     initial_actions, pattern = elements[-2:]
-    #     keys = create_lookup_table_keys(plays, op_plays, op_start_plays)
-    #     table = dict(zip(keys, pattern))
-    #     return cls(plays, op_plays, op_start_plays,
-    #                initial_actions=initial_actions, table=table)
-
-
 if __name__ == '__main__':
-    invoke(
+    invoke_training(
         __doc__,
         'LookerUp Evolver 0.4',
-        LookerUp,
+        EvolvableLookerUp,
         prepare_player_class_kwargs
     )

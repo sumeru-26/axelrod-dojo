@@ -1,6 +1,7 @@
 import csv
 import sys
 
+
 def read_data(filename):
     """Read in the n top performing results from a given file"""
     results = []
@@ -9,6 +10,7 @@ def read_data(filename):
         for line in reader:
             results.append((float(line[-2]), line[-1]))
     return results
+
 
 if __name__ == "__main__":
     data_filename = sys.argv[1]

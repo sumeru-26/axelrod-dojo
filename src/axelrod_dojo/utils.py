@@ -10,7 +10,7 @@ import axelrod as axl
 PlayerInfo = namedtuple('PlayerInfo', ['strategy', 'init_kwargs'])
 
 
-## Output Evolutionary Algorithm results
+# Output Evolutionary Algorithm results
 
 class Outputer(object):
     def __init__(self, filename, mode='a'):
@@ -23,7 +23,7 @@ class Outputer(object):
             writer.writerow(row)
 
 
-## Objective functions for optimization
+# Objective functions for optimization
 
 def prepare_objective(name="score", turns=200, noise=0., repetitions=None,
                       nmoran=None, match_attributes=None):
