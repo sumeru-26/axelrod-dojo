@@ -93,8 +93,8 @@ class Population(object):
 
         # Report
         if self.print_output:
-            print("Generation", self.generation, "| Best Score:", results[0][0], repr(self.population[results[0][
-                1]]))  # prints best result
+            print("Generation", self.generation, "| Best Score:", results[0][0])
+
         # Write the data
         # Note: if using this for analysis, for reproducibility it may be useful to
         # pass type(opponent) for each of the opponents. This will allow verification of results post run
