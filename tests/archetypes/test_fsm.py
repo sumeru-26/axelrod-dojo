@@ -1,6 +1,5 @@
 import axelrod as axl
 import unittest
-import random
 
 from axelrod_dojo import FSMParams
 
@@ -8,65 +7,7 @@ C, D = axl.Action.C, axl.Action.D
 
 
 class TestFSMParams(unittest.TestCase):
-    def test_init(self):
-        num_states = 2
-        rows = [[0, C, 1, D], [0, D, 0, D], [1, C, 1, C], [1, D, 1, D]]
-        fsm_params = FSMParams(num_states=num_states, rows=rows)
-        self.assertEqual(fsm_params.PlayerClass, axl.FSMPlayer)
-        self.assertEqual(fsm_params.num_states, num_states)
-        self.assertEqual(fsm_params.rows, rows)
-        self.assertEqual(fsm_params.initial_action, C)
-        self.assertEqual(fsm_params.initial_state, 0)
 
-    def test_init_without_default_rows(self):
-        """
-        Check that by default have random rows.
-        """
-        num_states = 2
-        rows = []
-        for seed in range(2):
-            axl.seed(seed)
-            fsm_params = FSMParams(num_states=num_states)
-            rows.append(fsm_params.rows)
-        self.assertNotEqual(*rows)
-
-    def test_player(self):
-        num_states = 2
-        rows = [[0, C, 1, D], [0, D, 0, D], [1, C, 1, C], [1, D, 1, D]]
-        fsm_params = FSMParams(num_states=num_states, rows=rows)
-        self.assertEqual(fsm_params.player(),
-                         axl.FSMPlayer(rows, initial_state=0))
-
-    def test_copy(self):
-        num_states = 2
-        fsm_params = FSMParams(num_states=num_states)
-        copy_fsm_params = fsm_params.copy()
-        # Not the same
-        self.assertIsNot(fsm_params, copy_fsm_params)
-
-        # Have same attributes
-        self.assertEqual(fsm_params.PlayerClass, copy_fsm_params.PlayerClass)
-        self.assertEqual(fsm_params.num_states, copy_fsm_params.num_states)
-        self.assertEqual(fsm_params.rows, copy_fsm_params.rows)
-        self.assertEqual(fsm_params.initial_action,
-                         copy_fsm_params.initial_action)
-        self.assertEqual(fsm_params.initial_state,
-                         copy_fsm_params.initial_state)
-
-    def test_random_params(self):
-        num_states = 2
-        fsm_params = FSMParams(num_states=num_states)
-        rows, initial_state, initial_action = fsm_params.random_params(num_states)
-
-        self.assertEqual(len(rows), num_states * 2)
-        self.assertIn(initial_state, range(num_states))
-        self.assertIn(initial_action, (C, D))
-        for row in rows:
-            self.assertEqual(len(row), 4)
-            self.assertIn(row[0], range(num_states))
-            self.assertIn(row[2], range(num_states))
-            self.assertIn(row[1], (C, D))
-            self.assertIn(row[3], (C, D))
 
     def test_randomize(self):
         num_states = 2

@@ -110,8 +110,7 @@ class Population(object):
         # Add mutants of the best players
         best_mutants = [p.clone() for p in self.population]
         for p in best_mutants:
-            p.mutate()
-            self.population.append(p)
+            self.population.append(p.mutate())
         # Add random variants
         mutants = [self.player_class(**self.params_kwargs)
                    for _ in range(self.bottleneck // 2)]
@@ -121,8 +120,7 @@ class Population(object):
         size_left = self.size - len(self.population)
         players_to_modify = self.crossover(players_to_modify, size_left)
         # Mutate
-        for p in players_to_modify:
-            p.mutate()
+        players_to_modify = [p.mutate() for p in players_to_modify]
         self.population += players_to_modify
 
     def __iter__(self):
