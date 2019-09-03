@@ -100,7 +100,7 @@ class Population(object):
         # pass type(opponent) for each of the opponents. This will allow verification of results post run
 
         row = [self.generation, mean(scores), pstdev(scores), results[0][0],
-               repr(self.population[results[0][1]])]
+               self.player_class.serialize_parameters(self.population[results[0][1]])]
         self.outputer.write_row(row)
 
         # Next Population

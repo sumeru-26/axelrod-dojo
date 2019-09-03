@@ -21,7 +21,7 @@ class TestCyclerParams(unittest.TestCase):
 
         # params to pass through
         cycler_kwargs = {
-            "sequence_length": 10
+            "cycle_length": 10
         }
 
         # assert file is empty to start

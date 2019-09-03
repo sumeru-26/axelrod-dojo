@@ -25,7 +25,7 @@ class TestHMM(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        population = dojo.Population(params_class=dojo.HMMParams,
+        population = dojo.Population(player_class=axl.EvolvableHMMPlayer,
                                      params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
@@ -52,16 +52,13 @@ class TestHMM(unittest.TestCase):
 
         # Test the load params function
         for num in range(1, 4 + 1):
-            best = dojo.load_params(params_class=dojo.HMMParams,
+            best = dojo.load_params(player_class=axl.EvolvableHMMPlayer,
                                     filename=self.temporary_file.name,
                                     num=num)
             self.assertEqual(len(best), num)
 
-            for parameters in best:
-                self.assertIsInstance(parameters, dojo.HMMParams)
-
         # Test that can use these loaded params in a new algorithm instance
-        population = dojo.Population(params_class=dojo.HMMParams,
+        population = dojo.Population(player_class=axl.EvolvableHMMPlayer,
                                      params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
@@ -90,7 +87,7 @@ class TestHMM(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        population = dojo.Population(params_class=dojo.HMMParams,
+        population = dojo.Population(player_class=axl.EvolvableHMMPlayer,
                                      params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
@@ -118,15 +115,11 @@ class TestHMM(unittest.TestCase):
 
         # Test the load params function
         for num in range(1, 4 + 1):
-            best = dojo.load_params(params_class=dojo.HMMParams,
+            best = dojo.load_params(player_class=axl.EvolvableHMMPlayer,
                                     filename=self.temporary_file.name,
                                     num=num)
             self.assertEqual(len(best), num)
-
-            for parameters in best:
-                self.assertIsInstance(parameters, dojo.HMMParams)
-
-            self.assertEqual(best[0].__repr__(), best_params)
+            self.assertEqual(best[0].serialize_parameters(), best_params)
 
     def test_score_with_sample_count(self):
         name = "score"
@@ -142,7 +135,7 @@ class TestHMM(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        population = dojo.Population(params_class=dojo.HMMParams,
+        population = dojo.Population(player_class=axl.EvolvableHMMPlayer,
                                      params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
@@ -170,15 +163,11 @@ class TestHMM(unittest.TestCase):
 
         # Test the load params function
         for num in range(1, 4 + 1):
-            best = dojo.load_params(params_class=dojo.HMMParams,
+            best = dojo.load_params(player_class=axl.EvolvableHMMPlayer,
                                     filename=self.temporary_file.name,
                                     num=num)
             self.assertEqual(len(best), num)
-
-            for parameters in best:
-                self.assertIsInstance(parameters, dojo.HMMParams)
-
-            self.assertEqual(best[0].__repr__(), best_params)
+            self.assertEqual(best[0].serialize_parameters(), best_params)
 
     def test_score_with_sample_count_and_weights(self):
         name = "score"
@@ -194,7 +183,7 @@ class TestHMM(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        population = dojo.Population(params_class=dojo.HMMParams,
+        population = dojo.Population(player_class=axl.EvolvableHMMPlayer,
                                      params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
@@ -223,15 +212,11 @@ class TestHMM(unittest.TestCase):
 
         # Test the load params function
         for num in range(1, 4 + 1):
-            best = dojo.load_params(params_class=dojo.HMMParams,
+            best = dojo.load_params(player_class=axl.EvolvableHMMPlayer,
                                     filename=self.temporary_file.name,
                                     num=num)
             self.assertEqual(len(best), num)
-
-            for parameters in best:
-                self.assertIsInstance(parameters, dojo.HMMParams)
-
-            self.assertEqual(best[0].__repr__(), best_params)
+            self.assertEqual(best[0].serialize_parameters(), best_params)
 
     def test_score_with_particular_players(self):
         name = "score"
@@ -247,7 +232,7 @@ class TestHMM(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        population = dojo.Population(params_class=dojo.HMMParams,
+        population = dojo.Population(player_class=axl.EvolvableHMMPlayer,
                                      params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
@@ -276,7 +261,7 @@ class TestHMM(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        population = dojo.Population(params_class=dojo.HMMParams,
+        population = dojo.Population(player_class=axl.EvolvableHMMPlayer,
                                      params_kwargs={"num_states": num_states,
                                                     "mutation_probability": .5},
                                      size=size,
@@ -309,7 +294,7 @@ class TestHMM(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        pso = dojo.PSO(dojo.HMMParams,
+        pso = dojo.PSO(axl.EvolvableHMMPlayer,
                        params_kwargs={"num_states": num_states},
                        objective=objective,
                        opponents=opponents,
@@ -322,12 +307,10 @@ class TestHMM(unittest.TestCase):
         self.assertTrue(len(xopt) == 2 * num_states ** 2 + num_states + 1)
 
         # You can put the optimal vector back into a HMM.
-        simple_hmm_opt = dojo.HMMParams(num_states=num_states)
+        simple_hmm_opt = axl.EvolvableHMMPlayer(num_states=num_states)
         simple_hmm_opt.receive_vector(xopt)
-        simple_player = simple_hmm_opt.player()
+        simple_player = simple_hmm_opt
         self.assertTrue(simple_player.hmm.is_well_formed())  # This should get asserted in initialization anyway
-        
-        self.assertIsInstance(simple_hmm_opt, dojo.HMMParams)
         print(xopt)  # As a vector still
         print(simple_hmm_opt)  # As a HMM
 
@@ -352,7 +335,7 @@ class TestHMM(unittest.TestCase):
 
             axl.seed(_)
 
-            pso = dojo.PSO(dojo.HMMParams,
+            pso = dojo.PSO(axl.EvolvableHMMPlayer,
                            params_kwargs={"num_states": num_states},
                            objective=objective,
                            opponents=opponents,
@@ -362,14 +345,14 @@ class TestHMM(unittest.TestCase):
             xopt, fopt = pso.swarm()
 
             # You can put the optimal vector back into a HMM.
-            hmm_opt = dojo.HMMParams(num_states=num_states)
+            hmm_opt = axl.EvolvableHMMPlayer(num_states=num_states)
             hmm_opt.receive_vector(xopt)
 
             winners.append(hmm_opt)
             
         # Put the winners of the PSO into an EA.
                                              
-        population = dojo.Population(params_class=dojo.HMMParams,
+        population = dojo.Population(player_class=axl.EvolvableHMMPlayer,
                                      params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,

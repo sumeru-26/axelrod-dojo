@@ -16,11 +16,11 @@ class TestPopulationSizes(unittest.TestCase):
         opponent_list = [axl.TitForTat()]
         # params to pass through
         cycler_kwargs = {
-            "sequence_length": 10
+            "cycle_length": 10
         }
 
         population_size = 20
-        population = axl_dojo.Population(params_class=axl_dojo.CyclerParams,
+        population = axl_dojo.Population(player_class=axl.EvolvableCycler,
                                          params_kwargs=cycler_kwargs,
                                          size=population_size,
                                          objective=cycler_objective,
@@ -46,11 +46,11 @@ class TestPopulationSizes(unittest.TestCase):
         opponent_list = [axl.TitForTat()]
         # params to pass through
         cycler_kwargs = {
-            "sequence_length": 10
+            "cycle_length": 10
         }
 
         population_size = 20
-        population = axl_dojo.Population(params_class=axl_dojo.CyclerParams,
+        population = axl_dojo.Population(player_class=axl.EvolvableCycler,
                                          params_kwargs=cycler_kwargs,
                                          size=population_size,
                                          bottleneck=1,
