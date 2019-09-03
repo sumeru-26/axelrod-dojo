@@ -76,10 +76,9 @@ class TestPSO(unittest.TestCase):
         axl.seed(0)
         opt_vector, opt_objective_value = pso.swarm()
 
-        self.assertTrue(np.allclose(opt_vector, np.array([[0. , 0. , 0.36158016,
-                                                           0.35863128, 0. , 1.,
-                                                           0.72670793, 0.67951873]])))
-        self.assertEqual(abs(opt_objective_value), 4.96)
+        self.assertTrue(np.allclose(opt_vector, np.array([[
+            0., 0.89327795, 0.04140453, 0.73676965, 0., 0.20622436, 1., 0.68104353]])))
+        self.assertEqual(abs(opt_objective_value), 3.56)
 
     def test_pso_with_fsm(self):
         name = "score"
@@ -103,13 +102,9 @@ class TestPSO(unittest.TestCase):
         axl.seed(0)
         opt_vector, opt_objective_value = pso.swarm()
 
-        self.assertTrue(np.allclose(opt_vector, np.array([0.0187898, 0.6176355,
-                                                          0.61209572, 0.616934,
-                                                          0.94374808, 0.6818203,
-                                                          0.3595079, 0.43703195,
-                                                          0.6976312, 0.06022547,
-                                                          0.66676672, 0.67063787,
-                                                          0.21038256, 0.1289263,
-                                                          0.31542835, 0.36371077,
-                                                          0.57019677])))
+        self.assertTrue(np.allclose(
+            opt_vector,
+            np.array([
+                0.22825439, 0.06954976, 0.49462006, 0.27704876, 1., 0.81240316, 0.11818378, 0., 0.4289995,
+                0.91397724, 1., 0.7404604, 0.35865552, 1., 0.53483268, 0.41643427, 0.71756716])))
         self.assertEqual(abs(opt_objective_value), 1)

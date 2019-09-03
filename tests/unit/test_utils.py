@@ -159,23 +159,13 @@ class TestObjectiveMoran(unittest.TestCase):
                              expected_fixation_probabilities)
 
 
-class DummyParams(utils.Params):
-    """
-    Dummy Params class for testing purposes
-    """
-
-    def player(self):
-        return axl.Cooperator()
-
-
 class TestScoreParams(unittest.TestCase):
     def test_score(self):
         axl.seed(0)
         opponents_information = [utils.PlayerInfo(s, {})
                                  for s in axl.demo_strategies]
         objective = utils.prepare_objective()
-        params = DummyParams()
-        score = utils.score_params(params,
+        score = utils.score_player(axl.Cooperator(),
                                    objective=objective,
                                    opponents_information=opponents_information)
         expected_score = 2.0949
@@ -185,8 +175,7 @@ class TestScoreParams(unittest.TestCase):
         axl.seed(0)
         opponents_information = [utils.PlayerInfo(axl.Random, {"p": 0})]
         objective = utils.prepare_objective()
-        params = DummyParams()
-        score = utils.score_params(params,
+        score = utils.score_player(axl.Cooperator(),
                                    objective=objective,
                                    opponents_information=opponents_information)
         expected_score = 0
@@ -194,8 +183,7 @@ class TestScoreParams(unittest.TestCase):
 
         opponents_information = [utils.PlayerInfo(axl.Random, {"p": 1})]
         objective = utils.prepare_objective()
-        params = DummyParams()
-        score = utils.score_params(params,
+        score = utils.score_player(axl.Cooperator(),
                                    objective=objective,
                                    opponents_information=opponents_information)
         expected_score = 3.0
@@ -206,8 +194,7 @@ class TestScoreParams(unittest.TestCase):
         opponents_information = [utils.PlayerInfo(s, {})
                                  for s in axl.demo_strategies]
         objective = utils.prepare_objective()
-        params = DummyParams()
-        score = utils.score_params(params,
+        score = utils.score_player(axl.Cooperator(),
                                    objective=objective,
                                    opponents_information=opponents_information,
                                    # All weight on Coop
@@ -215,7 +202,7 @@ class TestScoreParams(unittest.TestCase):
         expected_score = 3
         self.assertEqual(score, expected_score)
 
-        score = utils.score_params(params,
+        score = utils.score_player(axl.Cooperator(),
                                    objective=objective,
                                    opponents_information=opponents_information,
                                    # Shared weight between Coop and Def
@@ -223,7 +210,7 @@ class TestScoreParams(unittest.TestCase):
         expected_score = 1.5
         self.assertEqual(score, expected_score)
 
-        score = utils.score_params(params,
+        score = utils.score_player(axl.Cooperator(),
                                    objective=objective,
                                    opponents_information=opponents_information,
                                    # Shared weight between Coop and Def
