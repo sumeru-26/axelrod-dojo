@@ -21,14 +21,14 @@ prepare the objective of our strategy. In this case we will aim to maximise
 The algorithm we are going to use is a genetic algorithm which requires a
 population of individuals. Let us set up the inputs::
 
-    >>> params_class = dojo.FSMParams
+    >>> params_class = axl.EvolvableFSMPlayer
     >>> params_kwargs = {"num_states": 2}
 
 Using this we can now create our Population (with :code:`20` individuals) for a
 genetic algorithm::
 
     >>> axl.seed(1)
-    >>> population = dojo.Population(params_class=params_class,
+    >>> population = dojo.Population(player_class=params_class,
     ...                              params_kwargs=params_kwargs,
     ...                              size=20,
     ...                              objective=objective,
@@ -43,13 +43,13 @@ We can now evolve our population::
     >>> generations = 4
     >>> population.run(generations)
     Scoring Generation 1
-    Generation 1 | Best Score: 2.1 0:C:0_C_0_C:0_D_1_C:1_C_1_D:1_D_1_D
+    Generation 1 | Best Score: 2.1333333333333333
     Scoring Generation 2
-    Generation 2 | Best Score: 2.1 0:C:0_C_0_C:0_D_1_C:1_C_1_D:1_D_1_D
+    Generation 2 | Best Score: 2.1333333333333333
     Scoring Generation 3
-    Generation 3 | Best Score: 2.1 0:C:0_C_0_C:0_D_1_C:1_C_1_D:1_D_1_D
+    Generation 3 | Best Score: 2.1333333333333333
     Scoring Generation 4
-    Generation 4 | Best Score: 2.1 0:C:0_C_0_C:0_D_1_C:1_C_1_D:1_D_1_D
+    Generation 4 | Best Score: 2.1333333333333333
 
 The :code:`run` command prints out the progress of the algorithm and this is
 also written to the output file (we passed :code:`output_filename` as an
