@@ -1,10 +1,11 @@
-import axelrod as axl
-import axelrod_dojo as dojo
 import functools
-import numpy as np
 import unittest
+import numpy as np
 
-from axelrod_dojo import GamblerParams, prepare_objective, FSMParams
+import axelrod as axl
+from axelrod import EvolvableGambler, EvolvableFSMPlayer
+import axelrod_dojo as dojo
+from axelrod_dojo import prepare_objective
 from axelrod_dojo.algorithms.particle_swarm_optimization import PSO
 
 
@@ -13,7 +14,7 @@ class TestPSO(unittest.TestCase):
         params = [1, 1, 1]
         objective = prepare_objective('score', 2, 0, 1, nmoran=False)
 
-        pso = PSO(GamblerParams, params, objective=objective)
+        pso = PSO(EvolvableGambler, params, objective=objective)
 
         self.assertIsInstance(pso.objective, functools.partial)
         self.assertEqual(len(pso.opponents_information), len(axl.short_run_time_strategies))
@@ -36,7 +37,7 @@ class TestPSO(unittest.TestCase):
         phig = 0.6
         omega = 0.6
 
-        pso = PSO(GamblerParams, params, objective=objective,
+        pso = PSO(EvolvableGambler, params, objective=objective,
                   opponents=opponents, population=population,
                   generations=generations, debug=debug, phip=phip, phig=phig,
                   omega=omega)
@@ -59,9 +60,7 @@ class TestPSO(unittest.TestCase):
         num_plays = 1
         num_op_plays = 1
         num_op_start_plays = 1
-        params_kwargs = {"plays": num_plays,
-                         "op_plays": num_op_plays,
-                         "op_start_plays": num_op_start_plays}
+        params_kwargs = {"parameters": (num_plays, num_op_plays, num_op_start_plays)}
         population = 10
         generations = 100
         opponents = [axl.Cooperator() for _ in range(5)]
@@ -71,16 +70,15 @@ class TestPSO(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        pso = dojo.PSO(dojo.GamblerParams, params_kwargs, objective=objective, debug=False,
-                  opponents=opponents, population=population, generations=generations)
+        pso = dojo.PSO(EvolvableGambler, params_kwargs, objective=objective, debug=False,
+                       opponents=opponents, population=population, generations=generations)
 
         axl.seed(0)
         opt_vector, opt_objective_value = pso.swarm()
 
-        self.assertTrue(np.allclose(opt_vector, np.array([[0. , 0. , 0.36158016,
-                                                           0.35863128, 0. , 1.,
-                                                           0.72670793, 0.67951873]])))
-        self.assertEqual(abs(opt_objective_value), 4.96)
+        self.assertTrue(np.allclose(opt_vector, np.array([[
+            0., 0.89327795, 0.04140453, 0.73676965, 0., 0.20622436, 1., 0.68104353]])))
+        self.assertEqual(abs(opt_objective_value), 3.56)
 
     def test_pso_with_fsm(self):
         name = "score"
@@ -98,19 +96,15 @@ class TestPSO(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        pso = PSO(FSMParams, params_kwargs, objective=objective, debug=False,
+        pso = PSO(EvolvableFSMPlayer, params_kwargs, objective=objective, debug=False,
                   opponents=opponents, population=population, generations=generations)
 
         axl.seed(0)
         opt_vector, opt_objective_value = pso.swarm()
 
-        self.assertTrue(np.allclose(opt_vector, np.array([0.0187898, 0.6176355,
-                                                          0.61209572, 0.616934,
-                                                          0.94374808, 0.6818203,
-                                                          0.3595079, 0.43703195,
-                                                          0.6976312, 0.06022547,
-                                                          0.66676672, 0.67063787,
-                                                          0.21038256, 0.1289263,
-                                                          0.31542835, 0.36371077,
-                                                          0.57019677])))
+        self.assertTrue(np.allclose(
+            opt_vector,
+            np.array([
+                0.22825439, 0.06954976, 0.49462006, 0.27704876, 1., 0.81240316, 0.11818378, 0., 0.4289995,
+                0.91397724, 1., 0.7404604, 0.35865552, 1., 0.53483268, 0.41643427, 0.71756716])))
         self.assertEqual(abs(opt_objective_value), 1)

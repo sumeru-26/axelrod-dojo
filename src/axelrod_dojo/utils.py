@@ -1,13 +1,16 @@
 from collections import namedtuple
+import csv
 from functools import partial
 from statistics import mean
-import csv
 
 import numpy as np
 import axelrod as axl
 
 
-## Output Evolutionary Algorithm results
+PlayerInfo = namedtuple('PlayerInfo', ['strategy', 'init_kwargs'])
+
+
+# Output Evolutionary Algorithm results
 
 class Outputer(object):
     def __init__(self, filename, mode='a'):
@@ -20,7 +23,7 @@ class Outputer(object):
             writer.writerow(row)
 
 
-## Objective functions for optimization
+# Objective functions for optimization
 
 def prepare_objective(name="score", turns=200, noise=0., repetitions=None,
                       nmoran=None, match_attributes=None):
@@ -102,62 +105,11 @@ def objective_moran_win(me, other, turns, noise, repetitions, N=5,
     return scores_for_this_opponent
 
 
-# Evolutionary Algorithm
-
-
-class Params(object):
-    """Abstract Base Class for Parameters Objects."""
-
-    def mutate(self):
-        pass
-
-    def random(self):
-        pass
-
-    def __repr__(self):
-        pass
-
-    def from_repr(self):
-        pass
-
-    def copy(self):
-        pass
-
-    def player(self):
-        pass
-
-    def params(self):
-        pass
-
-    def crossover(self, other):
-        pass
-
-    def receive_vector(self, vector):
-        """Receives a vector and creates an instance attribute called
-        vector."""
-        pass
-
-    def vector_to_instance(self):
-        """Turns the attribute vector in to an axelrod player instance."""
-        pass
-
-    def create_vector_bounds(self):
-        """Creates the bounds for the decision variables."""
-        pass
-
-
-PlayerInfo = namedtuple('PlayerInfo', ['strategy', 'init_kwargs'])
-
-
-def score_params(params, objective,
-                 opponents_information, weights=None, sample_count=None,
-                 instance_generation_function='player'):
+def score_player(player, objective, opponents_information, weights=None, sample_count=None):
     """
-    Return the overall mean score of a Params instance.
+    Return the overall mean score of a Player
     """
     scores_for_all_opponents = []
-
-    player = getattr(params, instance_generation_function)()
 
     if sample_count is not None:
         indices = np.random.choice(len(opponents_information), sample_count)
@@ -172,14 +124,13 @@ def score_params(params, objective,
         mean_vs_opponent = mean(scores_for_this_opponent)
         scores_for_all_opponents.append(mean_vs_opponent)
 
-    overall_mean_score = np.average(scores_for_all_opponents,
-                                    weights=weights)
+    overall_mean_score = np.average(scores_for_all_opponents, weights=weights)
     return overall_mean_score
 
 
-def load_params(params_class, filename, num):
+def load_params(player_class, filename, num):
     """Load the best num parameters from the given file."""
-    parser = params_class.parse_repr
+    parser = player_class.deserialize_parameters
     all_params = []
 
     with open(filename) as datafile:

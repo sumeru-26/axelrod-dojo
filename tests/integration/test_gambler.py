@@ -7,6 +7,7 @@ import axelrod_dojo as dojo
 
 C, D = axl.Action.C, axl.Action.D
 
+
 class TestFSMPopulation(unittest.TestCase):
     name = "score"
     turns = 10
@@ -24,8 +25,8 @@ class TestFSMPopulation(unittest.TestCase):
     def test_generations(self):
         temporary_file = tempfile.NamedTemporaryFile()
 
-        params_kwargs = {"plays": 1, "op_plays": 1, "op_start_plays": 2}
-        population = dojo.Population(params_class=dojo.GamblerParams,
+        params_kwargs = {"parameters": (1, 1, 2)}
+        population = dojo.Population(player_class=axl.EvolvableGambler,
                                      params_kwargs=params_kwargs,
                                      size=self.size,
                                      objective=self.objective,
@@ -50,8 +51,8 @@ class TestFSMPopulation(unittest.TestCase):
 
     def test_scores(self):
         temporary_file = tempfile.NamedTemporaryFile()
-        params_kwargs = {"plays": 1, "op_plays": 1, "op_start_plays": 2}
-        population = dojo.Population(params_class=dojo.GamblerParams,
+        params_kwargs = {"parameters": (1, 1, 2)}
+        population = dojo.Population(player_class=axl.EvolvableGambler,
                                      params_kwargs=params_kwargs,
                                      size=self.size,
                                      objective=self.objective,

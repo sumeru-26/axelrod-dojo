@@ -17,17 +17,17 @@ class TestCyclerParams(unittest.TestCase):
 
         # Lets use an opponent_list of just one:
         opponent_list = [axl.TitForTat(), axl.Calculator()]
-        cycler = axl_dojo.CyclerParams
+        cycler = axl.EvolvableCycler
 
         # params to pass through
         cycler_kwargs = {
-            "sequence_length": 10
+            "cycle_length": 10
         }
 
         # assert file is empty to start
         self.assertEqual(temp_file.readline(), b'')  # note that .readline() reads bytes hence b''
 
-        population = axl_dojo.Population(params_class=cycler,
+        population = axl_dojo.Population(player_class=cycler,
                                          params_kwargs=cycler_kwargs,
                                          size=20,
                                          objective=cycler_objective,

@@ -3,7 +3,7 @@ Finite State Machine Evolver
 
 Usage:
     fsm_evolve.py [-h] [--generations GENERATIONS] [--population POPULATION]
-    [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSORS]
+    [--mu MUTATION_RATE] [--bottleneck BOTTLENECK] [--processes PROCESSES]
     [--output OUTPUT_FILE] [--objective OBJECTIVE] [--repetitions REPETITIONS]
     [--turns TURNS] [--noise NOISE] [--nmoran NMORAN]
     [--states NUM_STATES]
@@ -24,36 +24,22 @@ Options:
     --states NUM_STATES         Number of FSM states [default: 8]
 """
 
-from docopt import docopt
+from axelrod import EvolvableFSMPlayer
+from axelrod_dojo import invoke_training
 
-from axelrod_dojo import FSMParams, Population, prepare_objective
+
+def prepare_player_class_kwargs(arguments):
+    param_kwargs = {
+        "num_states": int(arguments['--states']),
+        "mutation_probability": float(arguments['--mu']),
+    }
+    return param_kwargs
 
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='FSM Evolver 0.3')
-    print(arguments)
-    processes = int(arguments['--processes'])
-
-    # Vars for the genetic algorithm
-    population = int(arguments['--population'])
-    mutation_probability = float(arguments['--mu'])
-    generations = int(arguments['--generations'])
-    bottleneck = int(arguments['--bottleneck'])
-    output_filename = arguments['--output']
-
-    # Objective
-    name = str(arguments['--objective'])
-    repetitions = int(arguments['--repetitions'])
-    turns = int(arguments['--turns'])
-    noise = float(arguments['--noise'])
-    nmoran = int(arguments['--nmoran'])
-
-    # FSM
-    num_states = int(arguments['--states'])
-    param_kwargs = {"num_states": num_states}
-
-    objective = prepare_objective(name, turns, noise, repetitions, nmoran)
-    population = Population(FSMParams, param_kwargs, population, objective,
-                            output_filename, bottleneck, mutation_probability,
-                            processes=processes)
-    population.run(generations)
+    invoke_training(
+        __doc__,
+        'FSM Evolver 0.4',
+        EvolvableFSMPlayer,
+        prepare_player_class_kwargs
+    )

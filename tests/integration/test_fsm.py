@@ -8,9 +8,11 @@ import axelrod_dojo as dojo
 C, D = axl.Action.C, axl.Action.D
 
 
+player_class=axl.EvolvableFSMPlayer
+
+
 class TestFSMPopulation(unittest.TestCase):
     temporary_file = tempfile.NamedTemporaryFile()
-
 
     def test_score(self):
         name = "score"
@@ -26,7 +28,7 @@ class TestFSMPopulation(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        population = dojo.Population(params_class=dojo.FSMParams,
+        population = dojo.Population(player_class=player_class,
                                      params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
@@ -53,16 +55,13 @@ class TestFSMPopulation(unittest.TestCase):
 
         # Test the load params function
         for num in range(1, 4 + 1):
-            best = dojo.load_params(params_class=dojo.FSMParams,
+            best = dojo.load_params(player_class=player_class,
                                     filename=self.temporary_file.name,
                                     num=num)
             self.assertEqual(len(best), num)
 
-            for parameters in best:
-                self.assertIsInstance(parameters, dojo.FSMParams)
-
         # Test that can use these loaded params in a new algorithm instance
-        population = dojo.Population(params_class=dojo.FSMParams,
+        population = dojo.Population(player_class=player_class,
                                      params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
@@ -91,7 +90,7 @@ class TestFSMPopulation(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        population = dojo.Population(params_class=dojo.FSMParams,
+        population = dojo.Population(player_class=player_class,
                                      params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
@@ -119,15 +118,11 @@ class TestFSMPopulation(unittest.TestCase):
 
         # Test the load params function
         for num in range(1, 4 + 1):
-            best = dojo.load_params(params_class=dojo.FSMParams,
+            best = dojo.load_params(player_class=player_class,
                                     filename=self.temporary_file.name,
                                     num=num)
             self.assertEqual(len(best), num)
-
-            for parameters in best:
-                self.assertIsInstance(parameters, dojo.FSMParams)
-
-            self.assertEqual(best[0].__repr__(), best_params)
+            self.assertEqual(player_class.serialize_parameters(best[0]), best_params)
 
     def test_score_with_sample_count(self):
         name = "score"
@@ -143,7 +138,7 @@ class TestFSMPopulation(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        population = dojo.Population(params_class=dojo.FSMParams,
+        population = dojo.Population(player_class=player_class,
                                      params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
@@ -171,15 +166,13 @@ class TestFSMPopulation(unittest.TestCase):
 
         # Test the load params function
         for num in range(1, 4 + 1):
-            best = dojo.load_params(params_class=dojo.FSMParams,
+            best = dojo.load_params(player_class=player_class,
                                     filename=self.temporary_file.name,
                                     num=num)
             self.assertEqual(len(best), num)
 
-            for parameters in best:
-                self.assertIsInstance(parameters, dojo.FSMParams)
-
-            self.assertEqual(best[0].__repr__(), best_params)
+            self.assertEqual(len(best), num)
+            self.assertEqual(player_class.serialize_parameters(best[0]), best_params)
 
     def test_score_with_sample_count_and_weights(self):
         name = "score"
@@ -195,7 +188,7 @@ class TestFSMPopulation(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        population = dojo.Population(params_class=dojo.FSMParams,
+        population = dojo.Population(player_class=player_class,
                                      params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
@@ -224,15 +217,11 @@ class TestFSMPopulation(unittest.TestCase):
 
         # Test the load params function
         for num in range(1, 4 + 1):
-            best = dojo.load_params(params_class=dojo.FSMParams,
+            best = dojo.load_params(player_class=player_class,
                                     filename=self.temporary_file.name,
                                     num=num)
             self.assertEqual(len(best), num)
-
-            for parameters in best:
-                self.assertIsInstance(parameters, dojo.FSMParams)
-
-            self.assertEqual(best[0].__repr__(), best_params)
+            self.assertEqual(player_class.serialize_parameters(best[0]), best_params)
 
     def test_score_with_particular_players(self):
         """
@@ -254,7 +243,7 @@ class TestFSMPopulation(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        population = dojo.Population(params_class=dojo.FSMParams,
+        population = dojo.Population(player_class=player_class,
                                      params_kwargs={"num_states": num_states},
                                      size=size,
                                      objective=objective,
@@ -283,7 +272,7 @@ class TestFSMPopulation(unittest.TestCase):
                                            noise=noise,
                                            repetitions=repetitions)
 
-        population = dojo.Population(params_class=dojo.FSMParams,
+        population = dojo.Population(player_class=player_class,
                                      params_kwargs={"num_states": num_states,
                                                     "mutation_probability": .5},
                                      size=size,
