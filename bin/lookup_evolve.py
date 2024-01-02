@@ -31,15 +31,21 @@ from axelrod_dojo import invoke_training
 
 
 def prepare_player_class_kwargs(arguments):
-    plays = int(arguments['--plays'])
-    op_plays = int(arguments['--op_plays'])
-    op_start_plays = int(arguments['--op_start_plays'])
+    # plays = int(arguments['--plays'])
+    # op_plays = int(arguments['--op_plays'])
+    # op_start_plays = int(arguments['--op_start_plays'])
+
+    plays = 3
+    op_plays = 3
+    op_start_plays = 2
+
     table_depth = max(plays, op_plays, op_start_plays)
     initial_actions = [Action.C] * table_depth
     param_kwargs = {
         "parameters": (plays, op_plays, op_start_plays),
         "initial_actions": initial_actions,
-        "mutation_probability": float(arguments['--mu']),
+        # "mutation_probability": float(arguments['--mu']),
+        "mutation_probability": 0.1,
     }
     return param_kwargs
 
