@@ -1,5 +1,5 @@
 import itertools
-from typing import Any, Dict, List, Sequence, Text, Tuple
+from typing import Any, Dict,List, Sequence, Text, Tuple
 
 from axelrod.strategies.finite_state_machines import FSMPlayer, SimpleFSM
 from axelrod.action import Action
@@ -9,6 +9,7 @@ from axelrod.evolvable_player import (
     copy_lists,
 )
 from axelrod.player import Player
+
 
 C, D = Action.C, Action.D
 actions = (C, D)
